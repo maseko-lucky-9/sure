@@ -71,8 +71,4 @@ class AccountImport < Import
 
     CSV.parse(template, headers: true)
   end
-
-  def max_row_count
-    50
-  end
 end

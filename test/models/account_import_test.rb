@@ -206,8 +206,9 @@ class AccountImportTest < ActiveSupport::TestCase
     assert_equal({ accounts: 1 }, @import.dry_run)
   end
 
-  test "max_row_count is limited to 50" do
-    assert_equal 50, @import.max_row_count
+  test "max_row_count uses the standard import limit" do
+    assert_equal Import.new.max_row_count, @import.max_row_count
+    assert_operator @import.max_row_count, :>, 50
   end
 
   # The accountable class came from a user-supplied mapping value straight
