@@ -322,6 +322,69 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "spending forecast shows in the preview section only" do
+    @family.entries.where(entryable_type: "Transaction").destroy_all
+    create_transaction(date: Date.new(2026, 9, 5), amount: 100, category: categories(:food_and_drink))
+
+    travel_to Date.new(2026, 9, 15) do
+      @user.update!(preferences: (@user.preferences || {}).merge("preview_features_enabled" => false))
+      get reports_path
+      assert_response :ok
+      assert_select "[data-testid='spending-forecast']", count: 0
+
+      @user.update!(preferences: @user.preferences.merge("preview_features_enabled" => true))
+      get reports_path
+      assert_response :ok
+      assert_select "section[data-section-key='spending_vs_normal'] [data-testid='spending-forecast']" do |forecast|
+        assert_match(/On pace to spend \$?200\b/, forecast.text) # 100 in 15 days of 30
+        assert_no_match(/normally/, forecast.text) # one week of history is no baseline
+      end
+    end
+  end
+
+  test "spending forecast states a normal month once three months of history exist" do
+    @family.entries.where(entryable_type: "Transaction").destroy_all
+    create_transaction(date: Date.new(2026, 6, 1), amount: 300, category: categories(:food_and_drink))
+    create_transaction(date: Date.new(2026, 9, 5), amount: 100, category: categories(:food_and_drink))
+    @user.update!(preferences: (@user.preferences || {}).merge("preview_features_enabled" => true))
+
+    travel_to Date.new(2026, 9, 15) do
+      get reports_path
+
+      assert_response :ok
+      assert_select "[data-testid='spending-forecast']" do |forecast|
+        assert_match(/could land between/, forecast.text)
+        assert_match(/normally \$?100\b/, forecast.text) # 300 over three months
+      end
+    end
+  end
+
+  test "spending forecast says it is too early in the first week of the month" do
+    @user.update!(preferences: (@user.preferences || {}).merge("preview_features_enabled" => true))
+    create_transaction(date: Date.new(2026, 9, 2), amount: 100, category: categories(:food_and_drink))
+
+    travel_to Date.new(2026, 9, 3) do
+      get reports_path
+    end
+
+    assert_response :ok
+    assert_select "[data-testid='spending-forecast']", text: /Too early in the month for a forecast/
+    assert_select "[data-testid='spending-forecast']", text: /On pace/, count: 0
+  end
+
+  test "spending forecast is not shown for a finished month" do
+    @user.update!(preferences: (@user.preferences || {}).merge("preview_features_enabled" => true))
+    create_transaction(date: Date.new(2026, 8, 12), amount: 100, category: categories(:food_and_drink))
+
+    travel_to Date.new(2026, 9, 15) do
+      get reports_path(period_type: "monthly", start_date: "2026-08-01", end_date: "2026-08-31")
+    end
+
+    assert_response :ok
+    assert_select "section[data-section-key='spending_vs_normal']"
+    assert_select "[data-testid='spending-forecast']", count: 0
+  end
+
   test "the spending baseline starts at the first transaction in the user's own finances" do
     @user.update!(preferences: (@user.preferences || {}).merge("preview_features_enabled" => true))
     @family.entries.where(entryable_type: "Transaction").destroy_all

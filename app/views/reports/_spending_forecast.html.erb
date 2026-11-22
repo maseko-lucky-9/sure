@@ -1,0 +1,24 @@
+<%# locals: (forecast:) %>
+<%
+  whole = ->(money) { tag.span(money.format(precision: 0), class: "whitespace-nowrap privacy-sensitive") }
+  amounts = { projected: forecast.projected_total, usual: (forecast.usual_total if forecast.usual_known?),
+              low: forecast.range&.low, high: forecast.range&.high }.compact.transform_values(&whole)
+  headline = [ "on_pace", ("with_range" if forecast.range), ("with_usual" if forecast.usual_known?) ].compact.join("_")
+%>
+<%= render DS::Note.new(data: { testid: "spending-forecast" }) do %>
+  <% if forecast.available? %>
+    <p class="text-sm text-primary font-medium">
+      <%= t("reports.spending_vs_normal.forecast.#{headline}_html", **amounts) %>
+    </p>
+    <p class="text-xs text-secondary">
+      <%= t("reports.spending_vs_normal.forecast.detail_html",
+            spent: whole.call(forecast.spent_so_far),
+            month_start: l(forecast.period.start_date, format: :long),
+            month_end: l(forecast.month_end, format: :long)) %>
+      <%= t("reports.spending_vs_normal.forecast.#{forecast.usual_known? ? "usual_basis" : "no_usual"}") %>
+      <%= t("reports.spending_vs_normal.forecast.no_range") unless forecast.range %>
+    </p>
+  <% else %>
+    <p class="text-sm text-secondary"><%= t("reports.spending_vs_normal.forecast.too_early", date: l(forecast.available_on, format: :long)) %></p>
+  <% end %>
+<% end %>

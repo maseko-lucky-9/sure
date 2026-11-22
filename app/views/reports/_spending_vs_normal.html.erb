@@ -5,6 +5,10 @@
   changes = spending_changes(comparison, start_date: start_date, end_date: end_date)
 %>
 <div class="@container space-y-4">
+  <% if comparison.forecast %>
+    <%= render "reports/spending_forecast", forecast: comparison.forecast %>
+  <% end %>
+
   <p class="text-sm text-secondary">
     <% if comparison.comparable? %>
       <%= t(comparison.in_progress? ? "reports.spending_vs_normal.summary_so_far_html" : "reports.spending_vs_normal.summary_html",

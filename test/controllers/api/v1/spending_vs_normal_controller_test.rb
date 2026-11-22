@@ -27,6 +27,42 @@ class Api::V1::SpendingVsNormalControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "carries the month-end forecast for a period that contains today" do
+    @user.family.entries.where(entryable_type: "Transaction").destroy_all
+    create_transaction(account: accounts(:depository), amount: 100, category: categories(:food_and_drink), date: Date.new(2024, 3, 5))
+
+    travel_to Date.new(2024, 3, 15) do
+      get "/api/v1/spending_vs_normal", headers: api_headers(@auth)
+    end
+
+    assert_response :success
+    forecast = response.parsed_body["forecast"]
+    assert forecast["available"]
+    assert_equal({ "start_date" => "2024-03-01", "end_date" => "2024-03-31" }, forecast["period"])
+    assert_equal "100.0", forecast["spent_so_far"]
+    assert_in_delta 100 * 31 / 15r, BigDecimal(forecast["projected_total"]), 1e-9
+    assert_nil forecast["range"], "no history before March"
+  end
+
+  test "has no forecast before the month is seven days old" do
+    travel_to Date.new(2024, 3, 5) do
+      get "/api/v1/spending_vs_normal", headers: api_headers(@auth)
+    end
+
+    forecast = response.parsed_body["forecast"]
+    assert_equal false, forecast["available"]
+    assert_equal "too_early", forecast["unavailable_reason"]
+    assert_nil forecast["projected_total"]
+  end
+
+  test "has a null forecast for a finished period" do
+    get "/api/v1/spending_vs_normal", params: { start_date: "2024-02-01", end_date: "2024-02-29" }, headers: api_headers(@auth)
+
+    assert_response :success
+    assert response.parsed_body.key?("forecast")
+    assert_nil response.parsed_body["forecast"]
+  end
+
   test "returns the period's spending per category against normal" do
     @user.family.entries.where(entryable_type: "Transaction").destroy_all
     account = accounts(:depository)

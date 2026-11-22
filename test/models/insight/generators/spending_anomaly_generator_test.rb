@@ -394,6 +394,63 @@ class Insight::Generators::SpendingAnomalyGeneratorTest < ActiveSupport::TestCas
     end
   end
 
+  # The month-end projection is also what the Reports spending forecast shows,
+  # so its figures are pinned: 1,000 by day 10 against a 1,000 baseline is the
+  # month's pace (days in month / 10) times the spend, with nothing planned.
+  test "projects a category without bills at the month's pace" do
+    travel_to anchor do
+      baseline_months.each { |month| spend(month, 1_000) }
+      spend(current_month, 1_000)
+
+      facts = generate.sole.facts
+      pace = BigDecimal(current_month.end_of_month.day) / 10
+
+      assert_equal Money.new(1_000 * pace, "USD").format, facts[:projected_spend]
+      assert_equal Money.new(1_000, "USD").format, facts[:baseline_spend]
+      assert_equal ((pace - 1) * 100).round, facts[:deviation_pct]
+    end
+  end
+
+  # Rent already paid counts once, the insurance still due is added as it
+  # stands, and only the 600 spent outside bills is projected at the pace.
+  test "projects a category with bills paid and still due" do
+    rent = create_bill(category: @category, amount: 1_000, name: "Rent", day: 3)
+    insurance = create_bill(category: @category, amount: 500, name: "Insurance", day: 25)
+
+    travel_to anchor do
+      baseline_months.each do |month|
+        pay_bill(rent, date: month.change(day: 3))
+        spend(month, 300, day: 12)
+      end
+      pay_bill(rent, date: current_month.change(day: 3))
+      expect_bill(insurance, due_on: current_month.change(day: 25))
+      spend(current_month, 600, day: 5)
+
+      facts = generate.sole.facts
+      pace = BigDecimal(current_month.end_of_month.day) / 10
+      projected = 1_000 + 500 + 600 * pace
+
+      assert_equal Money.new(projected, "USD").format, facts[:projected_spend]
+      assert_equal Money.new(1_300, "USD").format, facts[:baseline_spend]
+      assert_equal ((projected - 1_300) / 1_300 * 100).round, facts[:deviation_pct]
+    end
+  end
+
+  # The month-end forecast counts uncategorized spending; the insight never has.
+  test "does not flag uncategorized spending running ahead" do
+    travel_to anchor do
+      baseline_months.each do |month|
+        spend(month, 3_000)
+        create_transaction(category: nil, amount: 300, date: month.change(day: 3), name: "uncat #{month}")
+      end
+      # A categorized spend on pace, so the run gets as far as weighing categories.
+      spend(current_month, BigDecimal(3_000) * 10 / current_month.end_of_month.day)
+      create_transaction(category: nil, amount: 900, date: current_month.change(day: 5), name: "uncat now")
+
+      assert_empty generate
+    end
+  end
+
   # The generator runs nightly for every family, so bills are read in bulk:
   # more of them must not mean more queries.
   test "reads bills with a fixed number of queries" do
