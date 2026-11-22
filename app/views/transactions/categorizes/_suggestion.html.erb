@@ -1,0 +1,12 @@
+<%# Best guess for the group; the button submits the surrounding form like a category pill does.
+    The id lets preview_rule remove it: the guess is for the group first shown, not for an edited filter.
+    A long category name truncates in both the pill and the button instead of widening the picker column. %>
+<% label = suggestion.category.display_name_with_parent %>
+<div id="categorize_suggestion" class="flex flex-wrap items-center gap-2 min-w-0" data-testid="category-suggestion">
+  <p class="text-sm text-secondary min-w-0">
+    <%= t(".suggested_html",
+          category: render(DS::Pill.new(label: label, custom_color: suggestion.category.color, icon: suggestion.category.lucide_icon.presence, marker: false, truncate: true)),
+          percent: suggestion.percent) %>
+  </p>
+  <%= render DS::Button.new(text: t(".use", category: label), variant: :secondary, size: :sm, type: :submit, name: "category_id", value: suggestion.category.id, title: t(".use", category: label), class: "max-w-full") %>
+</div>

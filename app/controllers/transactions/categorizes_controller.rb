@@ -19,6 +19,7 @@ class Transactions::CategorizesController < ApplicationController
     @group      = groups.first
     @categories = Current.family.categories.includes(:parent).alphabetically
     @total_uncategorized = uncategorized_count
+    @suggestion = Transaction::CategorySuggestion.for(Current.family, @group.entries) if preview_features_enabled?
   end
 
   def create
@@ -89,7 +90,9 @@ class Transactions::CategorizesController < ApplicationController
         locals: { entries: entries }),
       turbo_stream.replace("categorize_transaction_list",
         partial: "transactions/categorizes/transaction_list",
-        locals: { entries: entries, categories: @categories })
+        locals: { entries: entries, categories: @categories }),
+      # The suggestion was made for the group first shown, not for this filter.
+      turbo_stream.remove("categorize_suggestion")
     ]
   end
 

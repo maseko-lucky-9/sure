@@ -6,4 +6,4 @@
 
 ## Suggestions in the walkthrough
 - [x] Refuter: no suggestion is shown; the classifier can score on demand
-- [ ] Controller, view, tests
+- [x] Controller, view, tests

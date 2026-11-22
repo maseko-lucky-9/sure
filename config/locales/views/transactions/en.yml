@@ -289,6 +289,9 @@ en:
       entry_row:
         include_checkbox: "Include %{name}"
         assign_category_select: "Assign category for %{name}"
+      suggestion:
+        suggested_html: "Suggested: %{category} · %{percent}% match"
+        use: "Use %{category}"
     list:
       drag_drop_title: Drop CSV to import
       drag_drop_subtitle: Upload transactions directly
