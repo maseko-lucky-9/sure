@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { deflateRawSync } from "node:zlib";
@@ -86,14 +87,26 @@ test("finds the header below account details, with units in the names and semico
 
 test("push creates nothing unless Sure's dry run reads every row", async () => {
   const calls: string[] = [];
-  const server = (parsed: number): typeof fetch => async (url, init) => {
+  const server = (parsed: number, errors: object[] = []): typeof fetch => async (url, init) => {
     calls.push(String(url));
     assert.equal((init!.headers as Record<string, string>)["X-Api-Key"], "key");
-    const data = String(url).endsWith("/preflight") ? { parsed_rows_count: parsed, errors: [] } : { id: "imp1", status: "importing" };
+    // The reply shape of POST /api/v1/imports/preflight, as Sure's own API test
+    // pins it (test/controllers/api/v1/imports_controller_test.rb, "should
+    // preflight CSV import without persisting records").
+    const preflight = {
+      type: "TransactionImport", valid: errors.length === 0, stats: { rows_count: parsed },
+      headers: ["date", "amount", "name", "notes"], missing_required_headers: [], errors, warnings: [],
+    };
+    const data = String(url).endsWith("/preflight") ? preflight : { id: "imp1", status: "importing" };
     return new Response(JSON.stringify({ data }), { status: 200 });
   };
 
   await assert.rejects(push("csv", 3, "http://sure.test/", "acc", "key", true, server(2)), /read 2 of 3 rows.*Nothing was imported/);
+  assert.deepEqual(calls, ["http://sure.test/api/v1/imports/preflight"]);
+
+  calls.length = 0;
+  const invalid = [{ code: "validation_failed", message: "Date format is invalid" }];
+  await assert.rejects(push("csv", 3, "http://sure.test/", "acc", "key", true, server(3, invalid)), /Date format is invalid.*Nothing was imported/);
   assert.deepEqual(calls, ["http://sure.test/api/v1/imports/preflight"]);
 
   calls.length = 0;
@@ -152,3 +165,13 @@ test("reads the first worksheet of an xlsx, with shared strings and gaps", () =>
   assert.deepEqual(table[1], ["45717", "Pick n Pay's & Co", "", "-99.5"]);
   assert.equal(convert(table).csv, "date,amount,name,notes\n2025-03-01,-99.50,Pick n Pay's & Co,\n");
 });
+
+// The converted file is also what Sure's own suite pushes through its import
+// API (test/controllers/api/v1/sa_statement_converter_contract_test.rb), so the
+// two ends are tested against the same bytes.
+test("the shipped fixture converts to the file Sure's API contract test imports", () => {
+  const { csv, rows } = convert(readStatement(new URL("fixtures/money_in_out_fee.csv", import.meta.url).pathname), "2026-01-01");
+  assert.equal(rows, 12);
+  assert.equal(csv, readFileSync(new URL("fixtures/money_in_out_fee.converted.csv", import.meta.url), "utf8"));
+});
+
