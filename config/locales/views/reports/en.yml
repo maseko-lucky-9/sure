@@ -194,6 +194,24 @@ en:
         slightly_more: 15–50% more
         more: 50–100% more
         much_more: 100%+ more
+    needs_wants_savings:
+      title: Needs, wants and savings
+      group: Group
+      amount: This period
+      versus_target: Against 50/30/20
+      share_of_income: "%{share} of income"
+      target: "Target %{share} (%{amount})"
+      over: "%{amount} over"
+      under: "%{amount} under"
+      on_target: On target
+      savings_note: "Savings is what went into savings categories plus any income left unspent, so it is negative when you spent more than you earned. Refunds are set against their category's spending, and transactions marked one-time are left out."
+      in_progress: "This period is not over yet, so money you have not spent yet counts as savings."
+      no_income: "There is no income in this period, so there is nothing to compare with 50/30/20."
+      unassigned: Not in a group yet
+      and_more:
+        one: "and %{count} more"
+        other: "and %{count} more"
+      assign_groups: Assign groups
     investment_performance:
       title: Investment Performance
       portfolio_value: Portfolio Value

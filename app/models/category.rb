@@ -140,6 +140,8 @@ class Category < ApplicationRecord
     savings_and_investments
   ].freeze
 
+  include BudgetBucketable
+
   class Group
     attr_reader :category, :subcategories
 
