@@ -91,6 +91,40 @@ class UI::AccountPage < ApplicationComponent
     @fx_coverage_start_date = result
   end
 
+  # nil for every account but a South African tax-free one, and when the total
+  # across the owner's accounts is not safe to show. Memoised: nil is a result.
+  def tax_free_allowance
+    return @tax_free_allowance if defined?(@tax_free_allowance)
+
+    @tax_free_allowance = Account::TaxFreeAllowance.for(account, as_of: as_of)
+  end
+
+  def tax_free_allowance_variant
+    { ok: :info, near: :warning, over: :error }.fetch(tax_free_allowance.status)
+  end
+
+  def tax_free_allowance_message
+    allowance = tax_free_allowance
+    key = "accounts.show.tax_free_allowance"
+    sentences = [
+      if allowance.over_by.positive?
+        I18n.t("#{key}.over_limit", contributed: allowance.contributed.format, limit: allowance.annual_limit.format,
+                                    over_by: allowance.over_by.format)
+      else
+        I18n.t("#{key}.within_limit", contributed: allowance.contributed.format, limit: allowance.annual_limit.format,
+                                      remaining: allowance.remaining.format, year_end: I18n.l(allowance.year_end, format: :long))
+      end
+    ]
+    lifetime = allowance.lifetime_status
+    if lifetime != :ok
+      sentences << I18n.t("#{key}.lifetime_#{lifetime}", lifetime: allowance.lifetime_contributed.format,
+                                                         lifetime_limit: allowance.lifetime_limit.format)
+    end
+    sentences << I18n.t("#{key}.across_accounts", count: allowance.account_count) if allowance.account_count > 1
+
+    sentences.join(" ")
+  end
+
   # The controller's projection when it built one; otherwise built here, once
   # per render, for callers that construct the page without it.
   def loan_projection

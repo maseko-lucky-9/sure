@@ -13,10 +13,19 @@ One pull request per feature.
    - First nightly run for a rand family: old net-worth milestone cards expire, and a current
      low-balance warning is re-notified once because its bucket width changes.
 2. **Tax-free savings caps**
-   - A South African tax-free subtype for investment and depository accounts.
+   - A South African tax-free subtype (`tfsa_za`) for investment accounts. A tax-free account held at a bank
+     should be added as an investment account for now; a depository subtype is not built.
    - A PORO that sums a person's contributions per tax year (1 March to end of February) across
      their tax-free accounts and compares them with that year's limit and the lifetime limit.
    - An alert on the account page; no new insight type.
+   - Built: `Account::TaxFreeAllowance` and the alert. It counts deposits, not returns, and never gives room back
+     for a withdrawal. A transfer between the owner's own tax-free accounts is not counted.
+   - Blind spots: money put in before the account was tracked in Sure is missing, so the lifetime figure is a lower
+     bound; interest imported as a plain transaction counts as a deposit; a transfer from another provider's
+     tax-free account counts as a deposit. The alert hides if any family member who can open the account cannot
+     open all of the owner's tax-free accounts.
+   - Also: accounts in another currency are skipped, and every tax-free account under one login
+     is taken to be one person's.
 3. **50/30/20**
    - A needs / wants / savings bucket per category, defaulted from Sure's default category keys
      and editable, with unassigned categories shown.

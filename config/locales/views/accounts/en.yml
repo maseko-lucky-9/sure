@@ -155,6 +155,15 @@ en:
         overview: Overview
         schedule: Schedule
         statements: Statements
+      tax_free_allowance:
+        across_accounts:
+          one: This figure covers %{count} tax-free account.
+          other: This figure is across %{count} tax-free accounts.
+        lifetime_near: Over all years they come to %{lifetime} of the %{lifetime_limit} lifetime limit.
+        lifetime_over: Over all years they come to %{lifetime}, over the %{lifetime_limit} lifetime limit. SARS taxes the excess at 40%%.
+        over_limit: Deposits recorded in Sure this tax year come to %{contributed}, over the %{limit} limit. SARS taxes the %{over_by} over the limit at 40%%.
+        title: Tax-free savings allowance
+        within_limit: Deposits recorded in Sure this tax year come to %{contributed} of the %{limit} limit, leaving %{remaining}. The tax year ends on %{year_end}.
       activity:
         amount: Amount
         balance: Balance
@@ -263,6 +272,7 @@ en:
       au: Australia
       eu: Europe
       in: India
+      za: South Africa
       generic: General
     confirm_unlink:
       title: Unlink account from provider?
