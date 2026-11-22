@@ -1,0 +1,29 @@
+<%# locals: (breakdown:, in_progress:) %>
+<% whole = ->(amount) { Money.new(amount, breakdown.currency).format(precision: 0) } %>
+<div class="space-y-4">
+  <% if breakdown.available? %>
+    <%= render DS::Table.new(
+          rows: budget_bucket_table_rows(breakdown),
+          inset: true,
+          label: t(".title"),
+          row_opts: ->(row) { { data: { testid: row.testid } } }
+        ) do |table| %>
+      <% table.with_column(t(".group"), row_header: true, class: "font-medium text-primary") { |row| row.label } %>
+      <% table.with_column(t(".amount"), align: :right, class: "privacy-sensitive tabular-nums") do |row| %>
+        <%= tag.span whole.call(row.amount), class: "block whitespace-nowrap text-primary" %>
+        <%= tag.span t(".share_of_income", share: number_to_percentage(row.share, precision: 1)), class: "block text-xs text-secondary" %>
+      <% end %>
+      <% table.with_column(t(".versus_target"), align: :right, class: "tabular-nums") do |row| %>
+        <%= tag.span row.primary, class: "block text-primary privacy-sensitive" %>
+        <%= tag.span row.secondary, class: "block text-xs text-secondary" %>
+      <% end %>
+    <% end %>
+
+    <p class="text-sm text-secondary" data-testid="nws-savings-note"><%= t(".savings_note") %></p>
+    <% if in_progress %>
+      <p class="text-sm text-secondary" data-testid="nws-in-progress"><%= t(".in_progress") %></p>
+    <% end %>
+  <% else %>
+    <p class="text-sm text-secondary py-6 text-center" data-testid="nws-no-income"><%= t(".no_income") %></p>
+  <% end %>
+</div>

@@ -13,4 +13,5 @@
 
 ## 50/30/20
 - [x] Refuter: no classification exists
-- [ ] Bucket per category, preview section, tests
+- [x] Bucket per category, preview section, tests
+- [x] Independent review: refunds netted, one-time exclusion stated, group restored on import

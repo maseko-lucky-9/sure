@@ -150,6 +150,9 @@ class ReportsController < ApplicationController
       # Spending vs normal (preview): this period against the year before it
       @spending_comparison = build_spending_comparison
 
+      # Needs, wants and savings (preview): the totals above, grouped
+      @needs_wants_savings = build_needs_wants_savings
+
       # Investment flows (contributions/withdrawals)
       @investment_flows = InvestmentFlowStatement.new(Current.family, user: Current.user).period_totals(period: @period)
 
@@ -196,6 +199,15 @@ class ReportsController < ApplicationController
           partial: "reports/spending_vs_normal",
           locals: { comparison: @spending_comparison, start_date: @start_date, end_date: @end_date },
           visible: @has_accounts && @spending_comparison.present?,
+          collapsible: true,
+          preview: true
+        },
+        {
+          key: "needs_wants_savings",
+          title: "reports.needs_wants_savings.title",
+          partial: "reports/needs_wants_savings",
+          locals: { breakdown: @needs_wants_savings, in_progress: Date.current.between?(@start_date, @end_date) },
+          visible: @has_accounts && @needs_wants_savings.present?,
           collapsible: true,
           preview: true
         },
@@ -387,6 +399,15 @@ class ReportsController < ApplicationController
         @income_statement,
         period: @period,
         history_start: IncomeStatement::SpendingComparison.history_start(@income_statement)
+      )
+    end
+
+    def build_needs_wants_savings
+      return nil unless preview_features_enabled?
+
+      IncomeStatement::NeedsWantsSavings.new(
+        groups: IncomeStatement::CategoryNetting.new(@income_statement, period: @period).groups,
+        currency: Current.family.currency
       )
     end
 

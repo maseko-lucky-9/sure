@@ -3,6 +3,10 @@ en:
   categories:
     bootstrap:
       success: Default categories created successfully
+    budget_buckets:
+      needs: Needs
+      wants: Wants
+      savings: Savings
     locked: Categories are locked. Unlock them to add a new category.
     toggle_lock:
       locked: Categories locked
@@ -21,6 +25,9 @@ en:
       name_label: Name
       unassigned: "(unassigned)"
       parent_category_label: "Parent category (optional)"
+      budget_bucket_label: Group for the 50/30/20 report
+      budget_bucket_automatic: Automatic
+      budget_bucket_default: "Automatic: %{group}"
       trigger_label: Choose color and icon
       color: Color
       icon: Icon

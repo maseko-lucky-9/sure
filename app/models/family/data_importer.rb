@@ -508,6 +508,7 @@ class Family::DataImporter
           classification_unused: data["classification_unused"] || data["classification"] || "expense",
           lucide_icon: data["lucide_icon"] || "shapes"
         )
+        category.budget_bucket = data["budget_bucket"].presence_in(Category::BUDGET_BUCKETS) if data.key?("budget_bucket")
         category.save!
         map_source!(:categories, old_id, category)
         increment_summary("Category", created ? :created : :updated)

@@ -64,6 +64,9 @@
         <% unless category.parent? %>
           <%= f.select :parent_id, categories.pluck(:name, :id), { include_blank: t(".unassigned"), label: t(".parent_category_label") }, disabled: category.parent?, data: { action: "change->color-icon-picker#handleParentChange" } %>
         <% end %>
+        <% if preview_features_enabled? && category.parent_id.blank? %>
+          <%= f.select :budget_bucket, budget_bucket_options, { include_blank: t(".budget_bucket_automatic"), label: t(".budget_bucket_label"), help_text: budget_bucket_hint(category) } %>
+        <% end %>
       </div>
     </section>
 
