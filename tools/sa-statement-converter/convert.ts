@@ -204,8 +204,9 @@ export async function push(csv: string, rows: number, baseUrl: string, accountId
   // Nothing is created until Sure's dry run reads every row cleanly: creating
   // with publish starts the import at once, so a later check would be too late.
   const dry = (await call("/api/v1/imports/preflight", body)).data ?? {};
-  if (dry.parsed_rows_count !== rows || dry.errors?.length) {
-    throw new Error(`Sure's dry run read ${dry.parsed_rows_count} of ${rows} rows${dry.errors?.length ? `: ${JSON.stringify(dry.errors)}` : ""}. Nothing was imported.`);
+  const read = dry.stats?.rows_count;
+  if (read !== rows || dry.valid === false || dry.errors?.length) {
+    throw new Error(`Sure's dry run read ${read} of ${rows} rows${dry.errors?.length ? `: ${JSON.stringify(dry.errors)}` : ""}. Nothing was imported.`);
   }
   return (await call("/api/v1/imports", { ...body, publish: publish ? "true" : "false" })).data;
 }

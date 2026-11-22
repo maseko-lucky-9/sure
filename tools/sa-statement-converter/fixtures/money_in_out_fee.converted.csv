@@ -1,0 +1,13 @@
+date,amount,name,notes
+2024-01-01,5000.00,Salary,Monthly Salary Payment
+2024-01-02,-2000.00,Rent,Monthly Rent Payment
+2024-01-03,-5.50,Coffee,Coffee Shop Purchase
+2024-01-04,-15.00,Bank Fee,
+2024-01-05,1000.00,Transfer,Internal Transfer
+2024-01-05,-1000.00,Transfer,Internal Transfer
+2024-01-06,-250.75,Groceries,Supermarket Purchase
+2024-01-07,-3.50,ATM Fee,
+2024-01-08,1500.00,Freelance,Freelance Payment
+2024-01-09,-150.00,Utilities,Electric Bill
+2024-01-09,-5.00,Utilities Fee,Electric Bill
+2024-01-10,50.00,Refund,Product Refund
