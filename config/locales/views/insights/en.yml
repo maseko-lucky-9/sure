@@ -50,6 +50,7 @@ en:
       loan_payment_change: Loan payment
       bank_fees: Fees
       fixed_commitments_ratio: Fixed commitments
+      savings_opportunity: Savings
     meta:
       next_n_days:
         one: Next day
@@ -61,6 +62,7 @@ en:
     figures:
       vs_previous_three_months: vs previous three months
       today: today
+      a_month: a month
       on_pace: on pace
       of_budget: of budget
       need_attention: need attention
@@ -88,6 +90,7 @@ en:
       loan_payment_change: View loan
       bank_fees: View fees
       fixed_commitments_ratio: Review recurring transactions
+      savings_opportunity: View spending report
     titles:
       spending_anomaly:
         above: "%{category} spending is trending up"
@@ -114,6 +117,7 @@ en:
       fixed_commitments_ratio:
         up: Fixed commitments are taking more of your income
         over_half: Fixed commitments now take half your income or more
+      savings_opportunity: You could save %{saving} a month
     templates:
       spending_anomaly:
         above: You're on pace to spend %{projected_spend} on %{category} this month, about %{deviation_pct}% more than your recent monthly average of %{baseline_spend}.
@@ -141,6 +145,7 @@ en:
         recurring: "%{account} had %{amount} in fees over the last %{days} days."
         new: "%{account} had %{amount} in fees over the last %{days} days, after none in the %{days} days before."
       fixed_commitments_ratio: "Recurring commitments of %{commitments} a month take %{current_ratio}% of your typical monthly income of %{income}, up from %{previous_ratio}% six months ago. %{explanation}"
+      savings_opportunity: "For two months running, spending on %{categories} has been above your normal. Getting back to normal would save about %{saving} a month."
     fixed_commitments_ratio:
       contributors: "Main changes: %{list}."
       contributor:

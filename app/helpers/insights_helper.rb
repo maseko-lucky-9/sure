@@ -14,7 +14,8 @@ module InsightsHelper
     "bill_not_covered" => "calendar-x",
     "loan_payment_change" => "landmark",
     "bank_fees" => "receipt",
-    "fixed_commitments_ratio" => "scale"
+    "fixed_commitments_ratio" => "scale",
+    "savings_opportunity" => "piggy-bank"
   }.freeze
 
   def insight_icon_key(insight)
@@ -93,6 +94,8 @@ module InsightsHelper
       facts["amount"] && [ facts["amount"], t("insights.figures.fee_charges", count: facts["count"].to_i) ]
     when "fixed_commitments_ratio"
       facts["current_ratio"] && [ "#{facts["current_ratio"]}%", t("insights.figures.of_income") ]
+    when "savings_opportunity"
+      facts["saving"] && [ facts["saving"], t("insights.figures.a_month") ]
     end
   end
 
@@ -130,6 +133,10 @@ module InsightsHelper
         href: transactions_path(q: { start_date: insight.period_start.to_s, end_date: insight.period_end.to_s }) }
     when "net_worth_milestone"
       { text: t("insights.actions.net_worth_milestone"), href: reports_path }
+    when "savings_opportunity"
+      return nil unless insight.period_start && insight.period_end
+      { text: t("insights.actions.savings_opportunity"),
+        href: reports_path(period_type: :custom, start_date: insight.period_start.to_s, end_date: insight.period_end.to_s) }
     when "budget_at_risk", "budget_on_track"
       return nil unless insight.period_start
       { text: t("insights.actions.budget"), href: budget_path(Budget.date_to_param(insight.period_start)) }

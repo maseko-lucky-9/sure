@@ -79,7 +79,8 @@ class Insight::BodyWriterTest < ActiveSupport::TestCase
       "budget_on_track" => { spent: "$2,948.00", budgeted: "$5,200.00", budget_spent_pct: 57 },
       "bill_not_covered" => { name: "Rent", amount: "$1,460.00", due_on: "Dec 7, 2026", account: "Joint account", shortfall: "$300.00" },
       "bank_fees.recurring" => { account: "Checking", amount: "$36.00", count: 3, days: 90 },
-      "bank_fees.new" => { account: "Checking", amount: "$3.00", count: 1, days: 90 }
+      "bank_fees.new" => { account: "Checking", amount: "$3.00", count: 1, days: 90 },
+      "savings_opportunity" => { saving: "$730.00", count: 2, categories: "Dining out ($430.00) and Transport ($300.00)" }
     }.freeze
 
     def placeholders(text)
