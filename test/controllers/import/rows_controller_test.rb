@@ -70,6 +70,37 @@ class Import::RowsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to import_row_path(@import, @row)
   end
 
+
+  test "member without access to the import's account cannot view or edit its rows" do
+    @import.update!(account: accounts(:investment))
+    sign_in users(:family_member)
+
+    get import_row_path(@import, @row)
+    assert_response :not_found
+
+    assert_no_changes -> { @row.reload.amount } do
+      patch import_row_path(@import, @row), params: { import_row: { amount: "999" } }
+    end
+    assert_response :not_found
+  end
+
+  test "rows are closed to a member who cannot view the statement the import was read from" do
+    Import.any_instance.stubs(:account_statement).returns(stub(viewable_by?: false))
+
+    get import_row_path(@import, @row)
+
+    assert_response :not_found
+  end
+
+  test "member the import's account is shared with can view its rows" do
+    @import.update!(account: accounts(:credit_card))
+    sign_in users(:family_member)
+
+    get import_row_path(@import, @row)
+
+    assert_response :success
+  end
+
   private
     def assert_row_fields(row, fields)
       fields.each do |field|

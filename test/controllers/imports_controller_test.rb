@@ -529,6 +529,65 @@ class ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_equal I18n.t("accounts.not_authorized"), flash[:alert]
   end
 
+  test "member cannot open, retarget or cancel an import bound for an unshared account" do
+    import = imports(:transaction)
+    import.update!(account: accounts(:investment))
+    sign_in users(:family_member)
+
+    get import_url(import)
+    assert_response :not_found
+
+    patch import_url(import), params: { import: { account_id: accounts(:depository).id } }
+    assert_response :not_found
+    assert_equal accounts(:investment), import.reload.account
+
+    post cancel_import_url(import)
+    assert_response :not_found
+  end
+
+  test "member cannot reach any wizard step of an import bound for an unshared account" do
+    import = imports(:transaction)
+    import.update!(account: accounts(:investment))
+    sign_in users(:family_member)
+
+    [
+      import_upload_path(import), import_configuration_path(import), import_clean_path(import),
+      import_confirm_path(import), summary_import_path(import)
+    ].each do |path|
+      get path
+      assert_response :not_found, "expected 404 for GET #{path}"
+    end
+
+    put apply_template_import_path(import)
+    assert_response :not_found
+
+    mapping = import.mappings.create!(type: "Import::CategoryMapping", key: "Groceries")
+    patch import_mapping_path(import, mapping), params: { import_mapping: { type: mapping.type, key: mapping.key } }
+    assert_response :not_found
+  end
+
+  test "member's import list leaves out imports bound for unshared accounts" do
+    hidden = imports(:transaction)
+    hidden.update!(account: accounts(:investment))
+    shown = families(:dylan_family).imports.create!(type: "TransactionImport", account: accounts(:credit_card))
+    sign_in users(:family_member)
+
+    get imports_url
+
+    assert_response :success
+    assert_select "tr##{ActionView::RecordIdentifier.dom_id(hidden)}", count: 0
+    assert_select "tr##{ActionView::RecordIdentifier.dom_id(shown)}", count: 1
+  end
+
+  test "member can open their QIF import when its account name matches another member's private account" do
+    import = qif_import_with_embedded_account(accounts(:investment).name)
+    sign_in users(:family_member)
+
+    get import_url(import)
+
+    assert_not_equal 404, response.status
+  end
+
   test "member cannot publish import with account mapping to an unshared account" do
     import = imports(:transaction)
     import.mappings.create!(type: "Import::AccountMapping", key: "Brokerage", mappable: accounts(:investment))

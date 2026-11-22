@@ -248,6 +248,29 @@ class Api::V1::ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "not_found", json_response["error"]
   end
 
+  test "should not expose an import targeting an account the key's user cannot access" do
+    member = users(:family_member)
+    member_key = ApiKey.create!(
+      user: member,
+      name: "Member Key",
+      scopes: [ "read" ],
+      display_key: "test_member_#{SecureRandom.hex(8)}",
+      source: "web"
+    )
+    Redis.new.del("api_rate_limit:#{member_key.id}")
+    @diagnostic_import.update!(account: accounts(:investment))
+
+    get rows_api_v1_import_url(@diagnostic_import), headers: api_headers(member_key)
+    assert_response :not_found
+
+    get api_v1_import_url(@diagnostic_import), headers: api_headers(member_key)
+    assert_response :not_found
+
+    get api_v1_imports_url, headers: api_headers(member_key)
+    assert_response :success
+    assert_not_includes JSON.parse(response.body)["data"].map { |i| i["id"] }, @diagnostic_import.id
+  end
+
   test "should require authentication for import row diagnostics" do
     get rows_api_v1_import_url(@diagnostic_import)
 

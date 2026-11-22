@@ -1,7 +1,9 @@
 class ImportsController < ApplicationController
+  include ImportGuestGuardable
   include SettingsHelper
 
   before_action :set_import, only: %i[show update publish destroy revert apply_template cancel summary]
+  before_action :require_import_account_access!, only: %i[show summary update apply_template cancel]
   before_action :require_statement_import_permission!, only: %i[update publish destroy revert apply_template cancel]
   before_action :require_writable_import_accounts!, only: %i[publish revert destroy]
   before_action :reject_guest_family_config_import!, except: %i[index new show summary]
@@ -66,7 +68,7 @@ class ImportsController < ApplicationController
   end
 
   def index
-    @pagy, @imports = pagy(Current.family.imports.where(type: Import::TYPES).ordered, limit: safe_per_page)
+    @pagy, @imports = pagy(Current.family.imports.for_accounts_accessible_by(Current.user).where(type: Import::TYPES).ordered, limit: safe_per_page)
     @breadcrumbs = [
       [ t("breadcrumbs.home"), root_path ],
       [ t("breadcrumbs.imports"), imports_path ]
@@ -77,7 +79,7 @@ class ImportsController < ApplicationController
   end
 
   def new
-    @pending_import = Current.family.imports.ordered.pending.first
+    @pending_import = Current.family.imports.for_accounts_accessible_by(Current.user).ordered.pending.first
     @document_upload_extensions = document_upload_supported_extensions
   end
 

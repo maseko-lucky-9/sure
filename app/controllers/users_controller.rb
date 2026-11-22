@@ -141,6 +141,8 @@ class UsersController < ApplicationController
       family_attrs = params.dig(:user, :family_attributes)
       return false if family_attrs.blank?
 
+      name_changed = family_attrs.key?(:name) && family_attrs[:name].to_s != Current.family.name.to_s
+      currency_changed = family_attrs.key?(:currency) && family_attrs[:currency].to_s != Current.family.currency.to_s
       moniker_changed = family_attrs[:moniker].present? && family_attrs[:moniker] != Current.family.moniker
       sharing_changed = family_attrs[:default_account_sharing].present? && family_attrs[:default_account_sharing] != Current.family.default_account_sharing
       enabled_currencies_changed = family_attrs.key?(:enabled_currencies)
@@ -149,7 +151,7 @@ class UsersController < ApplicationController
       investment_contributions_as_spending_changed = family_attrs.key?(:investment_contributions_as_spending)
       manual_reconciliation_changed = family_attrs.key?(:manual_reconciliation)
 
-      moniker_changed || sharing_changed || enabled_currencies_changed || personal_budgets_changed || household_budget_enabled_changed ||
+      name_changed || currency_changed || moniker_changed || sharing_changed || enabled_currencies_changed || personal_budgets_changed || household_budget_enabled_changed ||
         investment_contributions_as_spending_changed || manual_reconciliation_changed
     end
 

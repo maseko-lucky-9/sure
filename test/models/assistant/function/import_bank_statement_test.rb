@@ -38,4 +38,23 @@ class Assistant::Function::ImportBankStatementTest < ActiveSupport::TestCase
     assert_equal "not_configured", result[:reason]
     assert result[:message].present?, "the refusal carries the reason worded for the user"
   end
+
+  test "treats a PDF import bound for an account the user cannot see as not found" do
+    pdf = PdfImport.create!(family: @user.family, document_type: "bank_statement", account: accounts(:investment))
+    fn = Assistant::Function::ImportBankStatement.new(users(:family_member))
+
+    result = fn.call("pdf_import_id" => pdf.id)
+
+    assert_equal "PDF import not found", result[:error]
+  end
+
+  test "treats an account the user cannot write to as not found" do
+    pdf = PdfImport.create!(family: @user.family, document_type: "bank_statement")
+    fn = Assistant::Function::ImportBankStatement.new(users(:family_member))
+
+    result = fn.call("pdf_import_id" => pdf.id, "account_id" => accounts(:connected).id)
+
+    assert_equal "account_not_found", result[:error]
+    assert_not_includes result[:available_accounts].map { |a| a[:id] }, accounts(:connected).id
+  end
 end

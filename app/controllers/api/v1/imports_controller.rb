@@ -12,7 +12,7 @@ class Api::V1::ImportsController < Api::V1::BaseController
 
   def index
     family = current_resource_owner.family
-    imports_query = family.imports.ordered
+    imports_query = family.imports.for_accounts_accessible_by(current_resource_owner).ordered
 
     # Apply filters
     if params[:status].present?
@@ -204,14 +204,22 @@ class Api::V1::ImportsController < Api::V1::BaseController
 
     def set_import
       @import = import_scope.find(params[:id])
+      require_import_account_access!
     rescue ActiveRecord::RecordNotFound
       render_import_not_found
     end
 
     def set_import_with_rows
       @import = import_scope.includes(:rows).find(params[:id])
+      require_import_account_access!
     rescue ActiveRecord::RecordNotFound
       render_import_not_found
+    end
+
+    # An import's rows name accounts and amounts, so a family member who
+    # cannot see its accounts gets the same answer as for an unknown id.
+    def require_import_account_access!
+      raise ActiveRecord::RecordNotFound unless @import.visible_to?(current_resource_owner)
     end
 
     def import_scope

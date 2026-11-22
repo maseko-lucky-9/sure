@@ -1,7 +1,9 @@
 class Import::CleansController < ApplicationController
+  include ImportGuestGuardable
   layout "imports"
 
   before_action :set_import
+  before_action :require_import_account_access!
 
   def show
     unless @import.configured?

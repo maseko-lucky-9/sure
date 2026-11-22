@@ -147,4 +147,20 @@ class Assistant::Function::CreateGoalTest < ActiveSupport::TestCase
     assert listed[:claimed_in_full]
     assert listed.key?(:free_to_earmark)
   end
+
+  test "does not link or list a depository the user cannot access" do
+    hidden = Account.create!(
+      family: @family, owner: @user, accountable: Depository.new,
+      name: "Admin Private Savings", currency: "USD", balance: 2_000
+    )
+    fn = Assistant::Function::CreateGoal.new(users(:family_member))
+
+    assert_no_difference [ "Goal.count", "GoalAccount.count" ] do
+      result = fn.call("name" => "Peek", "target_amount" => 1000, "linked_account_names" => [ hidden.name ])
+
+      assert_equal false, result[:success]
+      assert_equal "unknown_accounts", result[:error]
+      assert_not_includes result[:available_accounts].map { |a| a[:name] }, hidden.name
+    end
+  end
 end
