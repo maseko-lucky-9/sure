@@ -9,6 +9,37 @@ class PlansControllerTest < ActionDispatch::IntegrationTest
   end
 
 
+  test "the hub links to the debt payoff planner when the user can see a liability" do
+    get plan_url
+
+    assert_response :success
+    assert_select "a[href=?]", debt_plan_path, text: /Plan your payoff/
+  end
+
+  test "the hub hides the debt payoff card when the user can see no liability" do
+    member = users(:family_member)
+    member.update!(preferences: (member.preferences || {}).merge("preview_features_enabled" => true))
+    AccountShare.where(user: member).destroy_all
+    sign_in member
+
+    get plan_url
+
+    assert_response :success
+    assert_select "a[href=?]", debt_plan_path, count: 0
+  end
+
+  test "the hub hides the debt payoff card when no loan or card is owed anything" do
+    member = users(:family_member)
+    member.update!(preferences: (member.preferences || {}).merge("preview_features_enabled" => true))
+    accounts(:credit_card).update_columns(balance: 0)
+    sign_in member
+
+    get plan_url
+
+    assert_response :success
+    assert_select "a[href=?]", debt_plan_path, count: 0
+  end
+
   # The status pill beside this bar was already amber for a depleted reserve
   # while the bar itself stayed neutral: the same goal reported as needing
   # attention and not, an inch apart.

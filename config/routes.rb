@@ -510,6 +510,9 @@ Rails.application.routes.draw do
   # Hub page fronting budgets + goals under a single "Plan" nav entry.
   resource :plan, only: :show
 
+  # Multi-debt payoff planner (snowball / avalanche), reached from the Plan hub.
+  resource :debt_plan, only: :show
+
   # Family-wide investment hub, built on the Reports section framework.
   resource :portfolio, only: :show do
     patch :update_preferences

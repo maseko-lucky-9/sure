@@ -1,0 +1,133 @@
+<%# Debt payoff planner: GET form, so the plan in view is a shareable URL.
+    Amounts are in the family's currency only; debts in any other currency
+    are listed as left out rather than converted. %>
+
+<div class="@container space-y-6 pb-6 lg:pb-12">
+  <header>
+    <div class="flex items-center gap-2">
+      <h1 class="text-2xl font-semibold text-primary"><%= t(".title") %></h1>
+      <%= render DS::Pill.new(label: t("shared.preview"), size: :md) %>
+    </div>
+    <p class="text-sm text-secondary mt-1"><%= t(".subtitle") %></p>
+  </header>
+
+  <% if @debts.empty? %>
+    <%= render DS::Card.new do %>
+      <%= render DS::EmptyState.new(icon: "credit-card", title: t(".empty_title"), description: t(".empty_description")) do |empty| %>
+        <% empty.with_action do %>
+          <%= render DS::Link.new(text: t(".add_account"), variant: "primary", icon: "plus", href: new_account_path(return_to: debt_plan_path)) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <%= render DS::Card.new do %>
+      <%= styled_form_with url: debt_plan_path, method: :get, id: "debt_plan_form",
+                           data: { turbo_action: "advance" }, class: "space-y-3" do |f| %>
+        <div class="grid grid-cols-1 @xl:grid-cols-2 gap-3">
+          <%= f.select :strategy,
+                DebtPayoffPlan::STRATEGIES.map { |strategy| [ t(".strategies.#{strategy}"), strategy.to_s ] },
+                { label: t(".form.strategy"), selected: @strategy },
+                { id: "strategy" } %>
+          <%= f.money_field :extra,
+                label: t(".form.extra"),
+                currency_value_override: @currency,
+                hide_currency: true,
+                value: (@extra if @extra.positive?),
+                placeholder: "0",
+                min: 0,
+                max: DebtPlansController::MAX_EXTRA,
+                input_class: "privacy-sensitive privacy-sensitive-interactive" %>
+        </div>
+        <p class="text-xs text-secondary"><%= t(".form.strategy_hint") %> <%= t(".form.extra_hint", currency: @currency) %></p>
+        <%= f.submit t(".form.submit") %>
+      <% end %>
+    <% end %>
+
+    <% if @plan.nil? %>
+      <%= render DS::Alert.new(variant: :warning, title: t(".not_converging.title"),
+                               message: t(".not_converging.message"), live: :status) %>
+    <% else %>
+      <div class="grid grid-cols-2 @3xl:grid-cols-4 gap-3" data-testid="debt-plan-summary">
+        <%= summary_card title: t(".summary.debt_free") do %>
+          <%= @plan.debt_free_on ? l(@plan.debt_free_on, format: :month_year) : t(".no_value") %>
+        <% end %>
+        <%= summary_card title: t(".summary.months") do %>
+          <%= t(".summary.months_value", count: @plan.months) %>
+        <% end %>
+        <%= summary_card title: t(".summary.total_interest") do %>
+          <%= debt_plan_money(@plan.total_interest, @currency) %>
+        <% end %>
+        <%= summary_card title: t(".summary.total_paid") do %>
+          <%= debt_plan_money(@plan.total_paid, @currency) %>
+        <% end %>
+      </div>
+
+      <%= render DS::Card.new do %>
+        <h2 class="text-sm font-medium text-primary mb-3"><%= t(".summary.payoff_order") %></h2>
+        <ol class="list-decimal list-inside space-y-1 text-sm text-primary" data-testid="payoff-order">
+          <% @plan.payoff_order.each do |name| %>
+            <li><%= name %></li>
+          <% end %>
+        </ol>
+      <% end %>
+    <% end %>
+
+    <section class="space-y-2">
+      <h2 class="text-sm font-medium text-primary"><%= t(".comparison.title") %></h2>
+      <%= render DS::Table.new(rows: DebtPayoffPlan::STRATEGIES, label: t(".comparison.label"),
+                               id: "debt-plan-comparison", data: { testid: "debt-plan-comparison" },
+                               row_class: ->(strategy) { "bg-container-inset" if strategy.to_s == @strategy }) do |table| %>
+        <% table.with_column(t(".comparison.strategy")) do |strategy| %>
+          <%= t(".strategy_names.#{strategy}") %><% if strategy.to_s == @strategy %> <span class="text-xs text-secondary">(<%= t(".comparison.selected") %>)</span><% end %>
+        <% end %>
+        <% table.with_column(t(".comparison.months"), numeric: true) do |strategy| %>
+          <%= (plan = @plans[strategy]) ? plan.months.to_s : t(".comparison.does_not_finish") %>
+        <% end %>
+        <% table.with_column(t(".comparison.total_interest"), numeric: true, class: "privacy-sensitive") do |strategy| %>
+          <%= (plan = @plans[strategy]) ? debt_plan_money(plan.total_interest, @currency) : t(".no_value") %>
+        <% end %>
+        <% table.with_column(t(".comparison.debt_free"), numeric: true) do |strategy| %>
+          <%= (date = @plans[strategy]&.debt_free_on) ? l(date, format: :month_year) : t(".no_value") %>
+        <% end %>
+      <% end %>
+    </section>
+
+    <% if @plan %>
+      <section class="space-y-2">
+        <h2 class="text-sm font-medium text-primary"><%= t(".schedule.title") %></h2>
+        <%= render DS::Table.new(rows: @plan.schedule, sticky_header: true, label: t(".schedule.label"),
+                                 id: "debt-plan-schedule", data: { testid: "debt-plan-schedule" }) do |table| %>
+          <% table.with_column(t(".schedule.month")) { |month| debt_plan_month_label(month.number) } %>
+          <% table.with_column(t(".schedule.paid"), numeric: true, class: "privacy-sensitive") { |month| debt_plan_money(month.total_paid, @currency) } %>
+          <% table.with_column(t(".schedule.interest"), numeric: true, class: "privacy-sensitive") { |month| debt_plan_money(month.interest, @currency) } %>
+          <% table.with_column(t(".schedule.remaining"), numeric: true, class: "privacy-sensitive") { |month| debt_plan_money(month.remaining, @currency) } %>
+        <% end %>
+      </section>
+    <% end %>
+
+    <section class="space-y-2">
+      <h2 class="text-sm font-medium text-primary"><%= t(".debts.title") %></h2>
+      <%= render DS::Table.new(rows: @debts, label: t(".debts.label"), id: "debt-plan-debts", data: { testid: "debt-plan-debts" }) do |table| %>
+        <% table.with_column(t(".debts.name")) { |debt| debt.name } %>
+        <% table.with_column(t(".debts.balance"), numeric: true, class: "privacy-sensitive") { |debt| debt_plan_money(debt.balance, @currency) } %>
+        <% table.with_column(t(".debts.apr"), numeric: true) { |debt| number_to_percentage(debt.apr, precision: 2) } %>
+        <% table.with_column(t(".debts.minimum"), numeric: true, class: "privacy-sensitive") { |debt| debt_plan_money(debt.minimum_payment, @currency) } %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% if @left_out.any? %>
+    <%= render DS::Card.new do %>
+      <h2 class="text-sm font-medium text-primary"><%= t(".left_out.title") %></h2>
+      <p class="text-xs text-secondary mt-1 mb-3"><%= t(".left_out.intro") %></p>
+      <ul class="divide-y divide-subdued" data-testid="debt-plan-left-out">
+        <% @left_out.each do |item| %>
+          <li class="py-2 text-sm">
+            <span class="font-medium text-primary"><%= item.name %></span>
+            <span class="text-secondary"> — <%= t(".left_out.reasons.#{item.reason}", currency: @currency) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+</div>
