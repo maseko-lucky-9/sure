@@ -14,8 +14,8 @@ class Goal::WithdrawalDetector
   # Below this an attribution is more friction than it is worth: a goal-backed
   # savings account sees card-sized outflows that nobody wants to file.
   #
-  # Same known limitation as `IdleCashGenerator::MIN_BALANCE`: a flat figure in
-  # family-currency units, tuned for dollar/euro-scale currencies.
+  # A dollar-scale base, scaled by Money::Scale for each outflow's own
+  # currency: a goal may hold accounts in more than one.
   MIN_AMOUNT = 100
 
   # A window, not all history. An outflow nobody attributed in three months is
@@ -63,7 +63,7 @@ class Goal::WithdrawalDetector
         # In Sure an inflow carries a NEGATIVE amount, so an outflow is the
         # positive side. Reading this the other way round would offer to
         # attribute the user's deposits as spending.
-        .where("entries.amount >= ?", MIN_AMOUNT)
+        .where(Money::Scale.at_least(Entry.arel_table, MIN_AMOUNT))
         .where("transactions.extra -> 'goal' ->> 'consumed_goal_id' IS NULL")
         # A provisional charge can still be reversed or replaced by its posted
         # form. Attributing one leaves the goal consumed for a transaction that

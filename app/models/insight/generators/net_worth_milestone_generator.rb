@@ -11,9 +11,10 @@
 class Insight::Generators::NetWorthMilestoneGenerator < Insight::Generator
   produces "net_worth_milestone"
 
-  # Known limitation: milestones are family-currency units, tuned for
-  # dollar/euro-scale currencies. In JPY-scale currencies the lower rungs are
-  # trivially small ($10k ≈ ¥1.5M would be the right first rung, not ¥10k).
+  # Dollar-scale base rungs, scaled by Money::Scale for the family's currency.
+  # Currencies without a Money::Scale entry still use them as is, so in
+  # JPY-scale currencies the lower rungs are trivially small ($10k ≈ ¥1.5M
+  # would be the right first rung, not ¥10k).
   MILESTONES = [
     10_000, 25_000, 50_000, 100_000, 250_000,
     500_000, 1_000_000, 2_500_000, 5_000_000, 10_000_000
@@ -32,7 +33,7 @@ class Insight::Generators::NetWorthMilestoneGenerator < Insight::Generator
 
     current = history.last.amount
     peak = history.select { |point| point.date >= window.start_date }.map(&:amount).max
-    milestone = MILESTONES.select { |m| m <= peak }.max
+    milestone = MILESTONES.map { |m| scaled(m) }.select { |m| m <= peak }.max
     return [] unless milestone && current >= milestone
     return [] unless freshly_crossed?(history, milestone, window)
 

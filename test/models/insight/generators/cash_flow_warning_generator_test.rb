@@ -77,4 +77,32 @@ class Insight::Generators::CashFlowWarningGeneratorTest < ActiveSupport::TestCas
 
     assert_empty Insight::Generators::CashFlowWarningGenerator.new(@family).generate
   end
+
+  # median_expense is stubbed to 30 a month, so the baseline spends 1 a day and
+  # the low point is the starting balance less 30.
+  test "a ZAR family warns below the low-balance threshold scaled to rand" do
+    @family.update!(currency: "ZAR")
+    accounts(:depository).update_columns(currency: "ZAR", balance: 10_030)
+    IncomeStatement.any_instance.stubs(:median_expense).returns(30)
+
+    assert_empty Insight::Generators::CashFlowWarningGenerator.new(@family).generate, "a low point of exactly 20 x the threshold is fine"
+
+    accounts(:depository).update_columns(balance: 10_029)
+    insight = Insight::Generators::CashFlowWarningGenerator.new(@family).generate.sole
+
+    assert_instance_of Integer, insight.metadata[:projected_low_bucket]
+    assert_equal 5_000, insight.metadata[:projected_low_bucket], "the bucket is 20 x 250 wide"
+  end
+
+  # The balance of 100 less the fixtures' 260 of recurring payments is a low
+  # point of -160, which floors to -250 only if the bucket is still 250 wide.
+  test "the projected-low bucket is unchanged for a USD family" do
+    accounts(:depository).update_columns(balance: 100)
+    IncomeStatement.any_instance.stubs(:median_expense).returns(30)
+
+    insight = Insight::Generators::CashFlowWarningGenerator.new(@family).generate.sole
+
+    assert_instance_of Integer, insight.metadata[:projected_low_bucket]
+    assert_equal(-250, insight.metadata[:projected_low_bucket])
+  end
 end

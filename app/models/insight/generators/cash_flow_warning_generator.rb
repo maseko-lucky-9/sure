@@ -7,8 +7,9 @@
 class Insight::Generators::CashFlowWarningGenerator < Insight::Generator
   produces "cash_flow_warning"
 
-  # Known limitation: family-currency units, tuned for dollar/euro-scale
-  # currencies (¥500 ≈ $3 would make this threshold meaninglessly low).
+  # Dollar-scale base, scaled by Money::Scale for the family's currency.
+  # Currencies without a Money::Scale entry still use it as is (¥500 ≈ $3
+  # would make this threshold meaninglessly low).
   LOW_BALANCE_THRESHOLD = 500
   HORIZON_DAYS = 30
 
@@ -43,8 +44,9 @@ class Insight::Generators::CashFlowWarningGenerator < Insight::Generator
       end
     end
 
-    return [] if low_point >= LOW_BALANCE_THRESHOLD
+    return [] if low_point >= scaled(LOW_BALANCE_THRESHOLD)
 
+    bucket = scaled(250)
     template_key = low_point.negative? ? "cash_flow_warning.negative" : "cash_flow_warning.low"
 
     [
@@ -65,7 +67,7 @@ class Insight::Generators::CashFlowWarningGenerator < Insight::Generator
         # bucket of the low point are material; display values live in `facts`.
         metadata: {
           negative: low_point.negative?,
-          projected_low_bucket: (round(low_point, 0).to_i / 250) * 250,
+          projected_low_bucket: (round(low_point, 0).to_i / bucket) * bucket,
           accounts_digest: shared_accounts_digest
         },
         period: Period.custom(start_date: Date.current, end_date: Date.current + HORIZON_DAYS),

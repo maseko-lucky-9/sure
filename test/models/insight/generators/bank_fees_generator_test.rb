@@ -194,9 +194,26 @@ class Insight::Generators::BankFeesGeneratorTest < ActiveSupport::TestCase
     assert_not_equal before, generate_for(@checking).metadata
   end
 
+  test "a ZAR family uses the minimum scaled to rand" do
+    @family.update!(currency: "ZAR")
+    @checking.update_columns(currency: "ZAR")
+    zar_fee(100.days.ago, 1) # prior window: this is not a new fee
+    zar_fee(30.days.ago, 199)
+
+    assert_nil generate_for(@checking), "just below 20 x MIN_TOTAL stays quiet"
+
+    zar_fee(20.days.ago, 1)
+
+    assert_equal "bank_fees.recurring", generate_for(@checking).template_key
+  end
+
   private
     def fee(account, amount, date, category: @fees)
       create_transaction(account: account, amount: amount, date: date.to_date, name: "Maintenance fee", category: category)
+    end
+
+    def zar_fee(date, amount)
+      create_transaction(account: @checking, amount: amount, date: date.to_date, name: "Maintenance fee", category: @fees, currency: "ZAR")
     end
 
     def history_since(account, date)

@@ -125,6 +125,9 @@ class Insight::Generator
       Money.new(amount, family.currency).format
     end
 
+    # A dollar-scale threshold in the family's currency (see Money::Scale).
+    def scaled(amount) = Money::Scale.scale(amount, family.currency)
+
     # Normalizes BigDecimal/Rational math results so metadata survives a jsonb
     # round-trip unchanged (BigDecimal#as_json is a string, which would make
     # every nightly run look like a material change).

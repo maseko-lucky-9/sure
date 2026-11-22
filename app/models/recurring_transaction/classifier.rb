@@ -44,7 +44,8 @@ class RecurringTransaction
     ].freeze
 
     # Above this, a flat recurring charge is more likely rent-or-service
-    # than a streaming plan.
+    # than a streaming plan. A dollar-scale base, scaled by Money::Scale for
+    # the entry's currency.
     SUBSCRIPTION_AMOUNT_CEILING = BigDecimal("150")
 
     Result = Data.define(:bill_type, :category_id, :autopay)
@@ -113,7 +114,7 @@ class RecurringTransaction
       end
 
       def modest_amount?
-        entries.first.amount.abs <= SUBSCRIPTION_AMOUNT_CEILING
+        entries.first.amount.abs <= Money::Scale.scale(SUBSCRIPTION_AMOUNT_CEILING, entries.first.currency)
       end
 
       def credit_card_account?

@@ -474,7 +474,29 @@ class Insight::Generators::SpendingAnomalyGeneratorTest < ActiveSupport::TestCas
     end
   end
 
+  # The same spike as "flags a category running well ahead of its baseline", in
+  # rand: a baseline below 20 x MIN_BASELINE is too small to judge.
+  test "a ZAR family ignores baselines below the minimum scaled to rand" do
+    @family.update!(currency: "ZAR")
+    accounts(:depository).update_columns(currency: "ZAR")
+
+    travel_to anchor do
+      3.times { |i| zar_spend(month_start(i + 1), 999) }
+      zar_spend(anchor.beginning_of_month, 1_000)
+
+      assert_empty generate
+
+      3.times { |i| zar_spend(month_start(i + 1), 1) }
+
+      assert_equal 1, generate.size
+    end
+  end
+
   private
+    def zar_spend(month, total)
+      create_transaction(category: @category, amount: total, date: month.change(day: 3), name: "zar #{month}", currency: "ZAR")
+    end
+
     # IncomeStatement caches its totals, so each count starts cold.
     def uncached_query_count(&block)
       Rails.cache.clear
