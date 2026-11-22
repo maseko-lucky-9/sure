@@ -131,7 +131,20 @@ class RecurringTransaction::ClassifierTest < ActiveSupport::TestCase
     assert_equal "bill", insurer.bill_type
   end
 
+  test "the subscription ceiling follows the entry currency" do
+    name = "SOMEOBSCURESERVICE"
+
+    assert_equal "subscription", Classifier.classify(name: name, entries: unsaved_entries_of("ZAR", 3_000, 3_000), account: @credit_card).bill_type
+    assert_equal "bill", Classifier.classify(name: name, entries: unsaved_entries_of("ZAR", 3_000.01, 3_000.01), account: @credit_card).bill_type
+    assert_equal "subscription", Classifier.classify(name: name, entries: unsaved_entries_of("USD", 150, 150), account: @credit_card).bill_type
+    assert_equal "bill", Classifier.classify(name: name, entries: unsaved_entries_of("USD", 150.01, 150.01), account: @credit_card).bill_type
+  end
+
   private
+    def unsaved_entries_of(currency, *amounts)
+      amounts.map { |amount| Entry.new(amount: amount, currency: currency, date: Date.current, name: "classifier", entryable: Transaction.new) }
+    end
+
     def entries_of(*amounts)
       amounts.map.with_index do |amount, index|
         @depository.entries.create!(

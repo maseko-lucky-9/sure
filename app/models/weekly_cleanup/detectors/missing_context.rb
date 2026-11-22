@@ -2,11 +2,12 @@
 # context. Flags recent larger expenses with neither a note nor an attachment —
 # the transactions most likely to need "what was this?" context later.
 class WeeklyCleanup::Detectors::MissingContext < WeeklyCleanup::Detector
+  # A dollar-scale base, scaled by Money::Scale for each expense's own currency.
   AMOUNT_THRESHOLD = 100
 
   def generate
     scope = recent_standard_entries
-      .where("entries.amount >= ?", AMOUNT_THRESHOLD)
+      .where(Money::Scale.at_least(Entry.arel_table, AMOUNT_THRESHOLD))
       .where("entries.notes IS NULL OR entries.notes = ''")
       .where(<<~SQL.squish)
         NOT EXISTS (

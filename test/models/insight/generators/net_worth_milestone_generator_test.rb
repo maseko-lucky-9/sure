@@ -77,6 +77,31 @@ class Insight::Generators::NetWorthMilestoneGeneratorTest < ActiveSupport::TestC
     assert_equal [ "net_worth_milestone:10000" ], dedup_keys
   end
 
+  test "a ZAR family's milestones are scaled to rand" do
+    @family.update!(currency: "ZAR")
+    @account.update_columns(currency: "ZAR")
+
+    net_worth 60 => 90_000, 10 => 199_999
+    assert_empty dedup_keys, "just below the first scaled rung is not a milestone"
+
+    net_worth 5 => 200_000
+    insight = Insight::Generators::NetWorthMilestoneGenerator.new(@family).generate.sole
+
+    assert_equal "net_worth_milestone:200000", insight.dedup_key
+    assert_instance_of Integer, insight.metadata[:milestone]
+    assert_equal 200_000, insight.metadata[:milestone]
+  end
+
+  test "a USD family's dedup key and metadata keep the unscaled integer milestone" do
+    net_worth 60 => 240_000, 10 => 255_000
+
+    insight = Insight::Generators::NetWorthMilestoneGenerator.new(@family).generate.sole
+
+    assert_equal "net_worth_milestone:250000", insight.dedup_key
+    assert_instance_of Integer, insight.metadata[:milestone]
+    assert_equal 250_000, insight.metadata[:milestone]
+  end
+
   private
     # `depository` is shared with family_member; `connected` is private to
     # family_admin. Together they cross 10,000, the shared one alone does not.

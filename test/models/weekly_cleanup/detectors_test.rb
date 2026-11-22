@@ -153,4 +153,28 @@ class WeeklyCleanup::DetectorsTest < ActiveSupport::TestCase
 
     assert_equal 1, finding.count
   end
+
+  # Each expense is judged in its own currency, not the family's.
+  test "missing context detector judges a dollar account in dollars for a ZAR family" do
+    @family.update!(currency: "ZAR")
+    create_transaction(account: @account, name: "Under Dollar Line", date: 1.day.ago, amount: 99, currency: "USD")
+    create_transaction(account: @account, name: "At Dollar Line", date: 1.day.ago, amount: 100, currency: "USD")
+
+    finding = WeeklyCleanup::Detectors::MissingContext.new(@family).generate
+
+    assert finding.samples.any? { |s| s.include?("At Dollar Line") }
+    assert finding.samples.none? { |s| s.include?("Under Dollar Line") }
+  end
+
+  test "missing context detector scales its threshold for a ZAR family" do
+    @family.update!(currency: "ZAR")
+    @account.update_columns(currency: "ZAR")
+    create_transaction(account: @account, name: "Under Rand Line", date: 1.day.ago, amount: 1_999, currency: "ZAR")
+    create_transaction(account: @account, name: "At Rand Line", date: 1.day.ago, amount: 2_000, currency: "ZAR")
+
+    finding = WeeklyCleanup::Detectors::MissingContext.new(@family).generate
+
+    assert finding.samples.any? { |s| s.include?("At Rand Line") }
+    assert finding.samples.none? { |s| s.include?("Under Rand Line") }
+  end
 end

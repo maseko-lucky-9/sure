@@ -4,8 +4,9 @@
 class Insight::Generators::IdleCashGenerator < Insight::Generator
   produces "idle_cash"
 
-  # Known limitation: family-currency units, tuned for dollar/euro-scale
-  # currencies (¥5,000 ≈ $33 would make this fire on trivial balances).
+  # Dollar-scale base, scaled by Money::Scale for the family's currency.
+  # Currencies without a Money::Scale entry still use it as is (¥5,000 ≈ $33
+  # would make this fire on trivial balances).
   MIN_BALANCE = 5_000
   IDLE_DAYS = 60
   MAX_INSIGHTS = 2
@@ -40,7 +41,7 @@ class Insight::Generators::IdleCashGenerator < Insight::Generator
     def idle_accounts
       family.accounts.visible.accessible_by_all_active_members
         .where(accountable_type: "Depository", currency: family.currency)
-        .where("balance >= ?", MIN_BALANCE)
+        .where("balance >= ?", scaled(MIN_BALANCE))
         .where.not(id: Entry.where("date >= ?", IDLE_DAYS.days.ago.to_date).select(:account_id))
         .order(balance: :desc)
     end

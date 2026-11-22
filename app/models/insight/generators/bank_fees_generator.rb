@@ -6,8 +6,9 @@
 class Insight::Generators::BankFeesGenerator < Insight::Generator
   produces "bank_fees"
 
-  # Known limitation: family-currency units, tuned for dollar/euro-scale
-  # currencies (¥10 would flag almost any fee).
+  # Dollar-scale base, scaled by Money::Scale for the family's currency.
+  # Currencies without a Money::Scale entry still use it as is (¥10 would
+  # flag almost any fee).
   MIN_TOTAL = 10
   WINDOW_DAYS = 90
   # Accounts a bank charges fees on. Brokerage and crypto fees are the cost of
@@ -64,7 +65,7 @@ class Insight::Generators::BankFeesGenerator < Insight::Generator
     def reportable?(row)
       return false unless row.total.positive?
 
-      row.total >= MIN_TOTAL || row.first_fees?
+      row.total >= scaled(MIN_TOTAL) || row.first_fees?
     end
 
     # The insight names the account and its fees to the whole family, so only

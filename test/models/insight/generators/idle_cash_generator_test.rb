@@ -24,6 +24,17 @@ class Insight::Generators::IdleCashGeneratorTest < ActiveSupport::TestCase
     assert_includes nudged_account_ids, @private.id
   end
 
+  test "a ZAR family uses the balance threshold scaled to rand" do
+    @family.update!(currency: "ZAR")
+    @shared.update_columns(currency: "ZAR", balance: 99_999)
+
+    assert_not_includes nudged_account_ids, @shared.id, "just below 20 x MIN_BALANCE stays quiet"
+
+    @shared.update_columns(balance: 100_000)
+
+    assert_includes nudged_account_ids, @shared.id
+  end
+
   private
     def nudged_account_ids
       Insight::Generators::IdleCashGenerator.new(@family).generate.map { |insight| insight.metadata[:account_id] }

@@ -145,6 +145,38 @@ class Goal::WithdrawalDetectorTest < ActiveSupport::TestCase
     assert_equal [ posted.id ], detect.map(&:id)
   end
 
+  test "a ZAR goal uses the threshold scaled to rand" do
+    zar_account = Account.create!(
+      family: @family, accountable: Depository.new,
+      name: "Rand Pot #{SecureRandom.hex(4)}", currency: "ZAR", balance: 50_000
+    )
+    zar_goal = @family.goals.create!(name: "Rand trip", target_amount: 50_000, currency: "ZAR") do |g|
+      g.goal_accounts.build(account: zar_account, allocated_amount: 50_000)
+    end
+    create_outflow(zar_account, Goal::WithdrawalDetector::MIN_AMOUNT * 20 - 1, Date.current)
+
+    assert_empty Goal::WithdrawalDetector.new(zar_goal).unattributed_outflows
+
+    entry = create_outflow(zar_account, Goal::WithdrawalDetector::MIN_AMOUNT * 20, Date.current)
+
+    assert_equal [ entry.id ], Goal::WithdrawalDetector.new(zar_goal).unattributed_outflows.map(&:id)
+  end
+
+  # A goal may hold accounts in other currencies; each outflow is judged in its own.
+  test "a ZAR goal judges a dollar account's outflows in dollars" do
+    usd_account = Account.create!(
+      family: @family, accountable: Depository.new,
+      name: "Dollar Pot #{SecureRandom.hex(4)}", currency: "USD", balance: 5_000
+    )
+    zar_goal = @family.goals.create!(name: "Rand trip", target_amount: 50_000, currency: "ZAR") do |g|
+      g.goal_accounts.build(account: usd_account, allocated_amount: 5_000)
+    end
+    create_outflow(usd_account, Goal::WithdrawalDetector::MIN_AMOUNT - 1, Date.current)
+    entry = create_outflow(usd_account, Goal::WithdrawalDetector::MIN_AMOUNT, Date.current)
+
+    assert_equal [ entry.id ], Goal::WithdrawalDetector.new(zar_goal).unattributed_outflows.map(&:id)
+  end
+
   private
     def detect(limit: 3)
       Goal::WithdrawalDetector.new(@goal).unattributed_outflows(limit: limit)

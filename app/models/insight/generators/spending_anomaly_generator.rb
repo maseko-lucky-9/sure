@@ -9,7 +9,9 @@
 class Insight::Generators::SpendingAnomalyGenerator < Insight::Generator
   produces "spending_anomaly"
 
-  MIN_BASELINE = 50           # ignore categories with a negligible baseline
+  # Ignore categories with a negligible baseline: a dollar-scale base, scaled
+  # by Money::Scale for the family's currency.
+  MIN_BASELINE = 50
   DEVIATION_THRESHOLD_PCT = 25
   HIGH_PRIORITY_PCT = 50
   MAX_INSIGHTS = 3
@@ -26,7 +28,7 @@ class Insight::Generators::SpendingAnomalyGenerator < Insight::Generator
     return [] if current.empty?
 
     anomalies = current.filter_map do |category|
-      next unless category.usual >= MIN_BASELINE
+      next unless category.usual >= scaled(MIN_BASELINE)
 
       projection = category.project
       next unless significant?(projection.deviation_pct, projection.unplanned_deviation_pct)
