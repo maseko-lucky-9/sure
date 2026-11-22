@@ -265,4 +265,52 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_not User.find(@admin.id).active?
     assert_enqueued_with(job: UserPurgeJob, args: [ @admin ])
   end
+
+  test "non-admin member cannot change the family name" do
+    member = users(:family_member)
+    sign_in member
+    family = member.family
+    original = family.name
+
+    [ "Hijacked", "", "   " ].each do |name|
+      patch user_url(member), params: { user: { family_attributes: { id: family.id, name: name } } }
+
+      assert_redirected_to settings_profile_url
+      assert_equal I18n.t("users.reset.unauthorized"), flash[:alert]
+      assert_equal original, family.reload.name
+    end
+  end
+
+  test "non-admin member cannot change the family currency" do
+    member = users(:family_member)
+    sign_in member
+    family = member.family
+    original = family.currency
+
+    patch user_url(member), params: { user: { family_attributes: { id: family.id, currency: "JPY" } } }
+
+    assert_redirected_to settings_profile_url
+    assert_equal I18n.t("users.reset.unauthorized"), flash[:alert]
+    assert_equal original, family.reload.currency
+  end
+
+  test "non-admin member can resubmit the family's current name and currency" do
+    member = users(:family_member)
+    sign_in member
+    family = member.family
+
+    patch user_url(member), params: { user: { first_name: "Pat", family_attributes: { id: family.id, name: family.name, currency: family.currency } } }
+
+    assert_nil flash[:alert]
+    assert_equal "Pat", member.reload.first_name
+  end
+
+  test "guest cannot change family name" do
+    guest = users(:intro_user)
+    sign_in guest
+
+    patch user_url(guest), params: { user: { family_attributes: { id: guest.family.id, name: "Hijacked" } } }
+
+    assert_not_equal "Hijacked", guest.family.reload.name
+  end
 end

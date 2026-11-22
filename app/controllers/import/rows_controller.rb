@@ -2,6 +2,7 @@ class Import::RowsController < ApplicationController
   include ImportGuestGuardable
 
   before_action :set_import_row
+  before_action :require_import_account_access!
   before_action :require_import_editable!, only: :update
 
   def update
