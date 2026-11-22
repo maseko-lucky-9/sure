@@ -18,6 +18,16 @@
       </div>
     <% end %>
 
+    <% if tax_free_allowance.present? %>
+      <div class="px-3 privacy-sensitive" data-testid="tax-free-allowance">
+        <%= render DS::Alert.new(
+          title: t("accounts.show.tax_free_allowance.title"),
+          message: tax_free_allowance_message,
+          variant: tax_free_allowance_variant
+        ) %>
+      </div>
+    <% end %>
+
     <div data-testid="account-details">
       <% if tabs.count > 1 %>
         <%= render DS::Tabs.new(active_tab: active_tab, url_param_key: "tab") do |tabs_container| %>

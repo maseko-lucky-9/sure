@@ -9,7 +9,7 @@
 ## Tax-free savings caps
 - [x] Refuter: no South African subtype, no cap tracking
 - [x] Limits confirmed against SARS
-- [ ] Subtype, contribution PORO, account alert, tests
+- [x] Subtype, contribution PORO, account alert, tests
 
 ## 50/30/20
 - [x] Refuter: no classification exists

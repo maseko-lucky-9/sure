@@ -50,6 +50,9 @@ class Investment < ApplicationRecord
     "super" => { short: "Super", long: "Superannuation", region: "au", tax_treatment: :tax_deferred },
     "smsf" => { short: "SMSF", long: "Self-Managed Super Fund", region: "au", tax_treatment: :tax_deferred },
 
+    # === South Africa ===
+    "tfsa_za" => { short: "TFSA", long: "Tax-Free Savings Account", region: "za", tax_treatment: :tax_exempt },
+
     # === Europe ===
     "assurance_vie" => { short: "AV", long: "Assurance Vie", region: "eu", tax_treatment: :tax_advantaged },
     "pea" => { short: "PEA", long: "Plan d'Épargne en Actions", region: "eu", tax_treatment: :tax_advantaged },
@@ -125,7 +128,8 @@ class Investment < ApplicationRecord
       "AUD" => "au",
       "EUR" => "eu",
       "CHF" => "eu",
-      "INR" => "in"
+      "INR" => "in",
+      "ZAR" => "za"
     }.freeze
 
     # Returns subtypes grouped by region for use with grouped_options_for_select
@@ -135,7 +139,7 @@ class Investment < ApplicationRecord
       grouped = SUBTYPES.group_by { |_, v| v[:region] }
 
       # Build region order: user's region first (if known), then Generic, then others
-      other_regions = %w[us uk ca au eu in] - [ user_region ].compact
+      other_regions = %w[us uk ca au eu in za] - [ user_region ].compact
       region_order = if user_region
         [ user_region, nil, *other_regions ].uniq
       else
