@@ -56,6 +56,7 @@ class Assistant::Function::ImportBankStatement < Assistant::Function
 
   def call(params = {})
     pdf_import = family.imports.find_by(id: params["pdf_import_id"], type: "PdfImport")
+    pdf_import = nil unless pdf_import && pdf_import_visible?(pdf_import)
 
     unless pdf_import
       return {
@@ -80,17 +81,17 @@ class Assistant::Function::ImportBankStatement < Assistant::Function
         success: false,
         error: "account_required",
         message: "Please specify which account to import transactions into",
-        available_accounts: family.accounts.visible.depository.map { |a| { id: a.id, name: a.name } }
+        available_accounts: available_accounts
       }
     end
 
-    account = family.accounts.find_by(id: params["account_id"])
+    account = writable_accounts.find_by(id: params["account_id"])
     unless account
       return {
         success: false,
         error: "account_not_found",
         message: "Account not found",
-        available_accounts: family.accounts.visible.depository.map { |a| { id: a.id, name: a.name } }
+        available_accounts: available_accounts
       }
     end
 
@@ -167,6 +168,19 @@ class Assistant::Function::ImportBankStatement < Assistant::Function
   end
 
   private
+    # Importing writes transactions, so only accounts the user may write to are offered.
+    def writable_accounts
+      family.accounts.writable_by(user)
+    end
+
+    def pdf_import_visible?(pdf_import)
+      statement = pdf_import.account_statement
+      pdf_import.accounts_accessible_by?(user) && (statement.nil? || statement.viewable_by?(user))
+    end
+
+    def available_accounts
+      writable_accounts.visible.where(accountable_type: "Depository").map { |a| { id: a.id, name: a.name } }
+    end
 
     # The refusal every AI gate on this path returns: the router's reason and its message.
     def ai_unavailable(availability)

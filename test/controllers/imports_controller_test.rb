@@ -529,6 +529,22 @@ class ImportsControllerTest < ActionDispatch::IntegrationTest
     assert_equal I18n.t("accounts.not_authorized"), flash[:alert]
   end
 
+  test "member cannot open, retarget or cancel an import bound for an unshared account" do
+    import = imports(:transaction)
+    import.update!(account: accounts(:investment))
+    sign_in users(:family_member)
+
+    get import_url(import)
+    assert_response :not_found
+
+    patch import_url(import), params: { import: { account_id: accounts(:depository).id } }
+    assert_response :not_found
+    assert_equal accounts(:investment), import.reload.account
+
+    post cancel_import_url(import)
+    assert_response :not_found
+  end
+
   test "member cannot publish import with account mapping to an unshared account" do
     import = imports(:transaction)
     import.mappings.create!(type: "Import::AccountMapping", key: "Brokerage", mappable: accounts(:investment))

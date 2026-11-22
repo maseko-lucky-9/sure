@@ -1,7 +1,9 @@
 class ImportsController < ApplicationController
+  include ImportGuestGuardable
   include SettingsHelper
 
   before_action :set_import, only: %i[show update publish destroy revert apply_template cancel summary]
+  before_action :require_import_account_access!, only: %i[show summary update apply_template cancel]
   before_action :require_statement_import_permission!, only: %i[update publish destroy revert apply_template cancel]
   before_action :require_writable_import_accounts!, only: %i[publish revert destroy]
   before_action :reject_guest_family_config_import!, except: %i[index new show summary]

@@ -510,15 +510,27 @@ class Import < ApplicationRecord
   # targets (its own account, account mappings) or has already written into
   # (entries). Accounts the import created itself are excluded.
   def accounts_writable_by?(user)
+    accounts_permitted_for?(user, :writable_by)
+  end
+
+  # The same accounts, tested for read access: enough to see the import's rows.
+  def accounts_accessible_by?(user)
+    accounts_permitted_for?(user, :accessible_by, existing_only: true)
+  end
+
+  # existing_only ignores ids of accounts that are gone: there is nothing left
+  # to see, while a write to one must still be refused.
+  def accounts_permitted_for?(user, access_scope, existing_only: false)
     ids = [ account_id ]
     ids += mappings.accounts.where.not(mappable_id: nil).pluck(:mappable_id)
     ids += entries.distinct.pluck(:account_id)
     ids += preexisting_target_account_ids
     ids = ids.compact.uniq - accounts.pluck(:id)
+    ids &= family.accounts.where(id: ids).pluck(:id) if existing_only
     return true if ids.empty?
     return false if user.nil?
 
-    (ids - family.accounts.writable_by(user).where(id: ids).pluck(:id)).empty?
+    (ids - family.accounts.public_send(access_scope, user).where(id: ids).pluck(:id)).empty?
   end
 
   # Existing family accounts the import resolves on its own at publish time
