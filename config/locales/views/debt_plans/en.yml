@@ -1,0 +1,65 @@
+---
+en:
+  debt_plans:
+    show:
+      title: Debt payoff
+      subtitle: See how long it takes to clear your debts, and what paying a little extra changes.
+      empty_title: No debts to plan yet
+      empty_description: Add a loan or credit card with its interest rate and minimum payment to see a payoff plan.
+      add_account: Add an account
+      no_value: "—"
+      form:
+        strategy: Strategy
+        strategy_hint: Avalanche pays the highest interest rate first and costs the least. Snowball pays the smallest balance first and clears your first debts sooner.
+        extra: Extra per month
+        extra_hint: Paid on top of the minimums each month, in %{currency}.
+        submit: Update plan
+      strategies:
+        avalanche: Avalanche (highest rate first)
+        snowball: Snowball (smallest balance first)
+      strategy_names:
+        avalanche: Avalanche
+        snowball: Snowball
+      not_converging:
+        title: This plan never pays off your debts
+        message: Interest builds up faster than the payments reduce it. Raise the extra amount or check each debt's minimum payment.
+      summary:
+        debt_free: Debt-free
+        months: Months to go
+        total_interest: Total interest
+        total_paid: Total paid
+        payoff_order: Payoff order
+        months_value:
+          one: 1 month
+          other: "%{count} months"
+      comparison:
+        title: Avalanche vs. snowball
+        strategy: Strategy
+        months: Months
+        total_interest: Total interest
+        debt_free: Debt-free
+        label: Comparison of the two payoff strategies
+        does_not_finish: Does not finish
+        selected: selected
+      schedule:
+        title: Month by month
+        label: Month-by-month payoff schedule
+        month: Month
+        paid: Paid
+        interest: Interest
+        remaining: Remaining
+      debts:
+        title: Your debts
+        label: Debts included in the plan
+        name: Debt
+        balance: Balance
+        apr: APR
+        minimum: Minimum payment
+      left_out:
+        title: Left out of the plan
+        intro: These debts are not part of the plan, and nothing was guessed for them.
+        reasons:
+          other_currency: Not in %{currency}. Amounts in different currencies are not converted.
+          missing_apr: No valid interest rate recorded.
+          missing_minimum: No minimum payment recorded or computable.
+          unsupported_type: This type of debt has no interest rate or minimum payment.

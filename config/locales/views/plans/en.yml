@@ -37,3 +37,7 @@ en:
       pending_marker: pending
       runway: "%{months} mo runway · %{pace}/mo"
       all_goals: All goals
+    debt_card:
+      title: Debt payoff
+      body: See a month-by-month plan to clear your loans and credit cards, snowball or avalanche.
+      cta: Plan your payoff

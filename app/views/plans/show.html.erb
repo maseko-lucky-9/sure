@@ -1,6 +1,7 @@
 <%# Plan hub: budgets + goals under one nav entry. Two summary cards
     fronting the existing /budgets and /goals pages — the two features
-    share a home here, not a data model. %>
+    share a home here, not a data model. A third, debt payoff, appears when
+    the user can see a liability. %>
 <div class="@container space-y-6 pb-6 lg:pb-12">
   <header>
     <div class="flex items-center gap-2">
@@ -13,5 +14,8 @@
   <div class="grid grid-cols-1 @3xl:grid-cols-2 gap-4 items-stretch">
     <%= render "plans/budget_card", budget: @budget, top_budget_categories: @top_budget_categories, editable: @editable, switch_options: @switch_options %>
     <%= render "plans/goals_card", goals: @goals, summary: @goals_summary, linkable_account_count: @linkable_account_count, family_has_goals: @family_has_goals %>
+    <% if @has_debts %>
+      <%= render "plans/debt_card" %>
+    <% end %>
   </div>
 </div>

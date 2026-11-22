@@ -23,6 +23,9 @@ class PlansController < ApplicationController
                                      .where(accountable_type: Goal::FUNDABLE_ACCOUNT_TYPES)
                                      .visible
                                      .count
+    # Only loans and cards with something owed can be planned.
+    @has_debts = Current.user.accessible_accounts.liabilities.visible
+      .where(accountable_type: %w[Loan CreditCard]).where("accounts.balance > 0").exists?
 
     @breadcrumbs = [ [ t("breadcrumbs.home"), root_path ], [ t("breadcrumbs.plan"), nil ] ]
   end

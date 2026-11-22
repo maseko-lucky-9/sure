@@ -1,0 +1,17 @@
+<%= render DS::Card.new(class: "@3xl:col-span-2") do %>
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="w-7 h-7 rounded-lg bg-surface-inset text-secondary flex items-center justify-center shrink-0">
+      <%= icon("credit-card", size: "sm") %>
+    </span>
+    <h2 class="text-sm font-medium text-primary shrink-0"><%= t(".title") %></h2>
+  </div>
+  <p class="text-sm text-secondary mb-4"><%= t(".body") %></p>
+  <%= render DS::Link.new(
+    text: t(".cta"),
+    variant: "secondary",
+    href: debt_plan_path,
+    icon: "chevron-right",
+    icon_position: :right,
+    full_width: true
+  ) %>
+<% end %>
