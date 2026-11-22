@@ -25,4 +25,7 @@ One pull request per feature.
 2. **Suggestions in the walkthrough**
    - `Transactions::CategorizesController#show` asks `Family::BayesCategorizer` for the best guess
      for the group on screen when it has enough training data.
-   - The view shows "Suggested: Groceries (62%)" and pre-selects it. Preview only.
+   - The view shows "Suggested: Groceries (62%)" with a "Use Groceries" button that submits the walkthrough
+     form like a category pill, so the rule checkbox state travels with it. Preview only.
+   - `Transaction::CategorySuggestion` scores up to 20 of the group's transactions and offers the category with the
+     highest mean probability, only when that mean is at least 0.30 (below it a guess among many categories is noise).

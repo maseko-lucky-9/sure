@@ -100,6 +100,8 @@
           <p class="text-sm font-medium text-secondary"><%= t(".assign_category") %></p>
 
           <div data-controller="list-filter" class="space-y-3">
+            <%= render "transactions/categorizes/suggestion", suggestion: @suggestion if @suggestion %>
+
             <%# Search field %>
             <div class="relative flex items-center bg-container border border-primary rounded-lg">
               <%= icon("search", class: "absolute left-3 text-secondary") %>
