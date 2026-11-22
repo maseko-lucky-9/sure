@@ -9,7 +9,10 @@
 
 ## Spend forecast
 - [x] Refuter: projection exists per category, no total
-- [ ] Shared forecast class, generator uses it, report line, tests
+- [x] Shared forecast class; the anomaly insight uses it (all 24 generator tests also pass on the pre-refactor generator)
+- [x] Month-end total and range in the "spending vs normal" section and its JSON
+- [x] Independent review: "normally" only with three months of history; range worded as "could land between"
+- [x] Mutation checks: pace removed (16 tests red), insight no longer skipping uncategorized (1 red)
 
 ## Savings opportunity insight
 - [x] Refuter: overspend flagged, no suggested saving

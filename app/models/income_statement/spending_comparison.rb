@@ -10,6 +10,9 @@
 # come from the user-scoped IncomeStatement, so transfers, exclusions and
 # account sharing follow the rest of Reports.
 #
+# A period that contains today also carries the month-end spending forecast
+# (IncomeStatement::SpendingForecast).
+#
 # as_json is the shared representation for the public API (for the mobile
 # app); the Reports section renders the same rows.
 class IncomeStatement::SpendingComparison
@@ -55,6 +58,7 @@ class IncomeStatement::SpendingComparison
 
   def initialize(income_statement, period:, history_start:, as_of: Date.current)
     @income_statement = income_statement
+    @covers_today = period.start_date <= as_of && as_of <= period.end_date
     @in_progress = period.start_date <= as_of && as_of < period.end_date
     # An unfinished period counts spending so far.
     @period = @in_progress ? Period.custom(start_date: period.start_date, end_date: as_of) : period
@@ -63,6 +67,15 @@ class IncomeStatement::SpendingComparison
 
   def in_progress?
     @in_progress
+  end
+
+  # Where the current month is heading, for a period that contains today; nil
+  # for any other. It follows the family's own month, not this period, and is
+  # the same projection the spending anomaly insight reads.
+  def forecast
+    return nil unless @covers_today
+
+    @forecast ||= IncomeStatement::SpendingForecast.new(income_statement)
   end
 
   def comparable?
@@ -120,6 +133,7 @@ class IncomeStatement::SpendingComparison
       comparable: comparable?,
       total: decimal(total),
       normal_total: normal_total && decimal(normal_total),
+      forecast: forecast&.as_json,
       categories: rows.map { |row| row_json(row).merge(subcategories: row.subcategories.map { |sub| row_json(sub).merge(direct: sub.direct) }) }
     }
   end

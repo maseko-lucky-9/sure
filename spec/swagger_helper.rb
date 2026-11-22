@@ -2025,8 +2025,26 @@ RSpec.configure do |config|
               subcategories: { type: :array, items: { '$ref' => '#/components/schemas/SpendingVsNormalCategory' }, description: 'Present on parent categories only; adds up to the parent total' }
             }
           },
+          SpendingForecast: {
+            type: :object, required: %w[available unavailable_reason currency period spent_so_far projected_total usual_total range],
+            description: 'Where spending is heading by the end of the current month (the family\'s month, which follows its month start day). Bills already paid and still due count as known amounts; the rest of the month\'s spending is extrapolated at its pace. Amounts are gross of refunds, so they can differ from the net totals around it. A usual month is the average of the three full months before this one',
+            properties: {
+              available: { type: :boolean, description: 'False until 7 days of the month have passed; the amounts are then null' },
+              unavailable_reason: { type: :string, nullable: true, enum: [ 'too_early', nil ] },
+              currency: { type: :string },
+              period: { '$ref' => '#/components/schemas/FinancialPeriod' },
+              spent_so_far: { type: :string, nullable: true },
+              projected_total: { type: :string, nullable: true, description: 'Projected spending for the whole month' },
+              usual_total: { type: :string, nullable: true, description: 'Average spending over the three full months before this one. Null without history across all three' },
+              range: {
+                type: :object, nullable: true, required: %w[low high],
+                properties: { low: { type: :string }, high: { type: :string } },
+                description: 'Where the month is likely to end, from the 25th and 75th percentile of a day\'s spending in the last three months. Null with under 14 days of spending history'
+              }
+            }
+          },
           SpendingVsNormal: {
-            type: :object, required: %w[currency period in_progress baseline_period comparable total normal_total categories],
+            type: :object, required: %w[currency period in_progress baseline_period comparable total normal_total forecast categories],
             properties: {
               currency: { type: :string },
               period: { '$ref' => '#/components/schemas/FinancialPeriod' },
@@ -2038,6 +2056,7 @@ RSpec.configure do |config|
               },
               comparable: { type: :boolean },
               total: { type: :string }, normal_total: { type: :string, nullable: true },
+              forecast: { nullable: true, allOf: [ { '$ref' => '#/components/schemas/SpendingForecast' } ], description: 'Month-end spending forecast. Null unless the period contains today' },
               categories: { type: :array, items: { '$ref' => '#/components/schemas/SpendingVsNormalCategory' }, description: 'Parent categories, largest total first' }
             }
           },

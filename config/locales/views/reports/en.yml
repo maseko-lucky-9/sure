@@ -163,6 +163,16 @@ en:
       no_history_html: "%{total} spent in this period. There isn't enough earlier history yet to say what's normal."
       no_history_short: Not enough earlier history to compare against yet.
       no_spending: No spending in this period.
+      forecast:
+        on_pace_with_range_with_usual_html: "On pace to spend %{projected} this month (could land between %{low} and %{high}), normally %{usual}."
+        on_pace_with_range_html: "On pace to spend %{projected} this month (could land between %{low} and %{high})."
+        on_pace_with_usual_html: "On pace to spend %{projected} this month, normally %{usual}."
+        on_pace_html: "On pace to spend %{projected} this month."
+        detail_html: "%{spent} spent so far, for the month of %{month_start} to %{month_end}."
+        usual_basis: Normal is the average of the last three full months.
+        no_usual: Not enough history yet to say what a normal month is.
+        no_range: Not enough spending history yet to say how far this could swing.
+        too_early: "Too early in the month for a forecast. It starts on %{date}."
       no_changes: Spending matched normal in every category.
       treemap_title: Where it went
       changes_title: What changed

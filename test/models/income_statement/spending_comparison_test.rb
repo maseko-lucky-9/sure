@@ -204,6 +204,28 @@ class IncomeStatement::SpendingComparisonTest < ActiveSupport::TestCase
     assert comparison.rows.any? { |r| r.category.uncategorized? && r.total == 40 }
   end
 
+  test "a period that contains today carries the month-end forecast, a finished one does not" do
+    create_transaction(account: @account, date: Date.new(2026, 10, 5), amount: 60, category: @food)
+
+    assert_nil comparison(as_of: Date.new(2026, 10, 15)).forecast
+    assert_nil comparison(as_of: Date.new(2026, 10, 15)).as_json[:forecast]
+
+    travel_to Date.new(2026, 9, 10) do
+      current = comparison(as_of: Date.new(2026, 9, 10))
+
+      assert_equal Date.new(2026, 9, 1), current.forecast.period.start_date
+      assert_equal current.forecast.as_json, current.as_json[:forecast]
+    end
+  end
+
+  # The last day of the month is still inside it, though the comparison no
+  # longer counts the period as unfinished.
+  test "the forecast is there on the last day of the month" do
+    travel_to Date.new(2026, 9, 30) do
+      assert comparison(as_of: Date.new(2026, 9, 30)).forecast.available?
+    end
+  end
+
   private
     def comparison(history_start: @period.start_date, as_of: Date.new(2026, 10, 15))
       IncomeStatement::SpendingComparison.new(IncomeStatement.new(@family), period: @period, history_start: history_start, as_of: as_of)
