@@ -309,6 +309,17 @@ class InsightsHelperTest < ActionView::TestCase
     assert_equal recurring_transactions_path, insight_action(insight)[:href]
   end
 
+  test "savings opportunity is neutral, leads with the saving and links to that month's spending report" do
+    insight = build_insight("savings_opportunity", facts: { "saving" => "$750.00" },
+                                                   period_start: Date.new(2026, 10, 1), period_end: Date.new(2026, 10, 31))
+
+    assert_equal :neutral, insight_sentiment(insight)
+    assert_equal "piggy-bank", insight_icon_key(insight)
+    assert_equal [ "$750.00", "a month" ], insight_key_figure(insight)
+    assert_equal reports_path(period_type: :custom, start_date: "2026-10-01", end_date: "2026-10-31"), insight_action(insight)[:href]
+    assert_nil insight_action(build_insight("savings_opportunity"))
+  end
+
   test "loan payment change reads its direction for sentiment and leads with the new payment" do
     up = build_insight("loan_payment_change",
                        metadata: { "account_id" => accounts(:loan).id, "previous_payment" => 1424.0, "new_payment" => 1616.0 },

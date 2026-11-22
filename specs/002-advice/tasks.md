@@ -16,4 +16,6 @@
 
 ## Savings opportunity insight
 - [x] Refuter: overspend flagged, no suggested saving
-- [ ] Generator, locale, tests
+- [x] One insight per finished month: categories above normal two months running, the smaller overage claimed
+- [x] Independent review: no single-month spikes, six months of history, three-day settle, medium priority only (no push)
+- [x] Mutation checks: one month enough, no history minimum, no settle wait, larger overage, uncategorized named, unshared accounts read

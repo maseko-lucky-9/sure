@@ -17,5 +17,7 @@ One pull request per feature, each preview-gated.
      (`IncomeStatement#daily_expense_series`).
    - Show it in the existing "spending vs normal" Reports section and its `as_json`.
 3. **Savings opportunity insight**
-   - Categories whose `SpendingComparison` row is above normal; the suggested saving is the
-     amount above normal.
+   - Categories whose `SpendingComparison` row is at least 10% above normal in each of the last
+     two finished months; the suggested saving is the smaller of the two overages.
+   - Needs 180 days of baseline, waits three days after month end, and is never high priority,
+     so it never sends a push.

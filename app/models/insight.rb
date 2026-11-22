@@ -38,6 +38,7 @@ class Insight < ApplicationRecord
     loan_payment_change
     bank_fees
     fixed_commitments_ratio
+    savings_opportunity
   ].freeze
 
   # How many the dashboard widget shows. Shared so PagesController (first render)

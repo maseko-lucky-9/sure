@@ -50,6 +50,7 @@ es:
       loan_payment_change: Cuota del préstamo
       bank_fees: Comisiones
       fixed_commitments_ratio: Compromisos fijos
+      savings_opportunity: Ahorro
     meta:
       next_n_days:
         one: Próximo día
@@ -61,6 +62,7 @@ es:
     figures:
       vs_previous_three_months: frente a los tres meses anteriores
       today: hoy
+      a_month: al mes
       on_pace: al ritmo previsto
       of_budget: del presupuesto
       need_attention: requieren atención
@@ -88,6 +90,7 @@ es:
       loan_payment_change: Ver préstamo
       bank_fees: Ver comisiones
       fixed_commitments_ratio: Revisar transacciones recurrentes
+      savings_opportunity: Ver informe de gastos
     titles:
       spending_anomaly:
         above: El gasto en %{category} va en aumento
@@ -114,6 +117,7 @@ es:
       fixed_commitments_ratio:
         up: Tus compromisos fijos pesan más en tus ingresos
         over_half: Tus compromisos fijos ya se llevan la mitad o más de tus ingresos
+      savings_opportunity: Podrías ahorrar %{saving} al mes
     templates:
       spending_anomaly:
         above: Vas camino de gastar %{projected_spend} en %{category} este mes, aproximadamente un %{deviation_pct}% más que tu promedio mensual reciente de %{baseline_spend}.
@@ -141,6 +145,7 @@ es:
         recurring: "%{account} acumula %{amount} en comisiones en los últimos %{days} días."
         new: "%{account} acumula %{amount} en comisiones en los últimos %{days} días, y ninguna en los %{days} días anteriores."
       fixed_commitments_ratio: "Tus compromisos recurrentes, %{commitments} al mes, se llevan el %{current_ratio}% de tus ingresos mensuales habituales (%{income}), frente al %{previous_ratio}% de hace seis meses. %{explanation}"
+      savings_opportunity: "Durante dos meses seguidos, el gasto en %{categories} ha estado por encima de lo habitual. Volver a lo habitual ahorraría unos %{saving} al mes."
     fixed_commitments_ratio:
       contributors: "Lo que más ha cambiado: %{list}."
       contributor:
