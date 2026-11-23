@@ -7,8 +7,8 @@
 
 ## Money Out and Fee columns
 - [x] Refuter: one amount column only; Balance fallback corrupts money-out rows
-- [ ] Model, configure step, tests with the Analyzer's fixtures
+- [x] Model, configure step, tests with the Analyzer's fixtures
 
 ## Account page import link
 - [x] Refuter: the link reaches the import list, not a new import for the account
-- [ ] Fix, test
+- [x] Fix, test

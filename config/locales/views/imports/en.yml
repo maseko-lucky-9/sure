@@ -103,6 +103,12 @@ en:
         default: Default
         currency_label: Currency
         format_label: Format
+        not_used: Not used
+        outflow_label: Money out column
+        outflow_hint: Optional. When chosen, the Amount column above is read as money in.
+        fee_label: Fee column
+        fee_hint: Optional, and used only with a money out column. Each fee is imported as its own transaction and is always money out, so a fee refund would be read as a charge.
+        sign_set_by_money_out: While a money out column is chosen, the two sign options below are set for you and ignored.
         amount_type_strategy_label: Amount type strategy
         select_strategy: Select strategy
         set: Set
@@ -598,6 +604,13 @@ en:
       provider_merchant_diff_row: "%{field}: keeping %{kept}, file has %{imported}"
     errors:
       custom_column_requires_inflow: "Custom column imports require an inflow column to be selected"
+      fee_requires_money_out: "Choose a money out column to use a fee column."
+      money_column_missing: "The column \"%{label}\" chosen as %{role} is not in the uploaded file. Choose it again."
+      money_columns_clash: "%{first} and %{second} are the same column (%{label}). Choose a different column for one of them."
+      money_column_roles:
+        amount: Amount (money in)
+        outflow: Money out
+        fee: Fee
       interrupted: "The background worker was interrupted before this finished. Imported data was rolled back — you can safely try again."
       presumed_lost: "Marked as failed after the background job was presumed lost. The imported data was rolled back — you can safely try again."
     document_types:

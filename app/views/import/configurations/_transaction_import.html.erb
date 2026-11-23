@@ -42,6 +42,25 @@
                     required: true %>
   </div>
 
+  <%# Money Out and Fee columns, for exports that split the amount %>
+  <div class="flex items-start gap-4">
+    <div class="w-1/2">
+      <%= form.select :outflow_col_label,
+                      import.csv_headers,
+                      { include_blank: t(".not_used"), label: t(".outflow_label"), help_text: t(".outflow_hint") } %>
+    </div>
+    <div class="w-1/2">
+      <%= form.select :fee_col_label,
+                      import.csv_headers,
+                      { include_blank: t(".not_used"), label: t(".fee_label"), help_text: t(".fee_hint") } %>
+    </div>
+  </div>
+
+  <% sign_note = import.money_out_column? ? { aria: { describedby: "money-out-sign-note" } } : {} %>
+  <% if import.money_out_column? %>
+    <p id="money-out-sign-note" class="text-xs text-secondary px-1"><%= t(".sign_set_by_money_out") %></p>
+  <% end %>
+
   <%# Amount Type Strategy %>
   <%= form.select :amount_type_strategy,
                   Import::AMOUNT_TYPE_STRATEGIES.map { |strategy| [strategy.humanize, strategy] },
@@ -50,7 +69,8 @@
                   data: {
                     action: "import#handleAmountTypeStrategyChange",
                     import_target: "amountTypeStrategySelect"
-                  } %>
+                  },
+                  **sign_note %>
 
   <%# Signed Amount Configuration %>
   <%= tag.fieldset data: { import_target: "signedAmountFieldset" },
@@ -60,7 +80,8 @@
       <%= form.select :signage_convention,
                       [[t(".incomes_are_positive"), "inflows_positive"], [t(".incomes_are_negative"), "inflows_negative"]],
                       { label: t(".amount_type_label"), prompt: t(".select_convention") },
-                      required: @import.amount_type_strategy == "signed_amount" %>
+                      required: @import.amount_type_strategy == "signed_amount",
+                      **sign_note %>
     </div>
   <% end %>
 
