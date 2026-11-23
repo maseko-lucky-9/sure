@@ -330,6 +330,12 @@ class ReportsController < ApplicationController
         family.entries_version,
         family.tags_version,
         family.holdings_version,
+        # Bills still due feed the spending forecast, and a bill, one of its
+        # occurrences or a payment recorded against it can change without any
+        # entry changing.
+        family.recurring_transactions_version,
+        family.recurring_occurrences.count, family.recurring_occurrences.maximum(:updated_at)&.to_f,
+        RecurringAllocation.to_family_bills(family).pick(Arel.sql("COUNT(*)"), Arel.sql("MAX(recurring_allocations.updated_at)")).map(&:to_f),
         ExchangeRate.updated_at_version,
         family.budgets.maximum(:updated_at)&.to_f,
         BudgetCategory.joins(:budget).where(budgets: { family_id: family.id }).maximum(:updated_at)&.to_f,

@@ -42,6 +42,13 @@ the live app. The refutations that changed the build:
   missing from the file). A second verification found that the new validation raised on
   unrelated saves after a file was replaced. All fixed before merge.
 
+- **Spending forecast under upstream's report cache (Phase 7).** Upstream began caching the
+  Reports body. The fork's forecast counts bills still due, and nothing in the cache's version
+  moved when a bill, one of its occurrences or a payment recorded against it changed without a
+  transaction changing, so the forecast stayed as it was until the next sync or the next day.
+  Found by the independent check of the upstream merge; the version now includes the family's
+  bills, their occurrences and the payments recorded against them.
+
 ## Not done
 
 | Item | Why | What unblocks it |
@@ -65,6 +72,8 @@ the live app. The refutations that changed the build:
 - The category suggestion appears only for guesses between 30% and 70%; Sure applies anything
   higher on its own.
 - The merchant rules need the default categories and a one-off rule import.
+- Reports are cached by upstream: after a change the page says it is updating in the background
+  and shows the new figures after the cooldown (60 minutes by default) or on Refresh.
 
 ## Fork drift
 
