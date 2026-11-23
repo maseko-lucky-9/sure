@@ -79,7 +79,13 @@ class Import::ConfigurationsController < ApplicationController
         :amount_type_strategy,
         :amount_type_identifier_value,
         :amount_type_inflow_value,
-        :rows_to_skip
+        :rows_to_skip,
+        *money_column_keys
       )
+    end
+
+    # Only a transaction import has Money Out and Fee columns to store.
+    def money_column_keys
+      @import.is_a?(TransactionImport) ? TransactionImport::MONEY_COLUMN_KEYS : []
     end
 end
